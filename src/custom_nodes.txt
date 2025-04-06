@@ -13,5 +13,5 @@ https://github.com/cubiq/ComfyUI_essentials.git 33ff89fd354d8ec3ab6affb605a79a93
 https://github.com/shockz0rz/comfy-easy-grids.git 376a8adf2a86fec214816c26789849c866f25466
 https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git a53ef9b617ed1331640d7a2cd97644995908dc00
 https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes.git d0905bed31249f2bd0814c67585cf4fe3c77c015
-https://github.com/Fannovel16/comfyui_controlnet_aux.git 1e9eac6377c882da8bb360c7544607036904362c
+https://github.com/Fannovel16/comfyui_controlnet_aux.git
 https://github.com/ltdrdata/ComfyUI-Manager.git b0daf81185e02c2876066272b0fdcc0333b64eab
