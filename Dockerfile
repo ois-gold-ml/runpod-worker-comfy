@@ -63,7 +63,7 @@ WORKDIR /comfyui
 # Create necessary directories
 RUN mkdir -p models/checkpoints models/vae
 
-comfy node install Fannovel16/comfyui_controlnet_aux
+RUN comfy node install Fannovel16/comfyui_controlnet_aux
 
 # Download checkpoints/vae/LoRA to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
