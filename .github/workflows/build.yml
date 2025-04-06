@@ -1,4 +1,4 @@
-name: Build Base Image on Push to Main Branch
+name: Build on Push to Build Branch
 
 on:
   push:
@@ -22,13 +22,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push base image using Docker Bake
-        uses: docker/bake-action@v3
-        with:
-          targets: base
-          push: true
-          set: |
-            *.platform=linux/amd64
-            DOCKERHUB_REPO=fajyz
-            DOCKERHUB_IMG=ois-gold-runpod-worker-comfy
-            RELEASE_VERSION=${{ github.sha }}
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME=fajyz/ois-gold-runpod-worker-comfy
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t $IMAGE_NAME:$IMAGE_TAG --target base --platform linux/amd64 .
+          docker push $IMAGE_NAME:$IMAGE_TAG
+
+          docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
