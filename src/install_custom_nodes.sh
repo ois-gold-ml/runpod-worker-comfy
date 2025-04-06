@@ -31,4 +31,4 @@ while IFS=' ' read -r line; do
     if [ -f "$CUSTOM_NODES_DIR/$repo_name/requirements.txt" ]; then
         pip3 install -r "$CUSTOM_NODES_DIR/$repo_name/requirements.txt"
     fi
-done < /workflows/custom_nodes.txt
+done < /custom_nodes.txt
