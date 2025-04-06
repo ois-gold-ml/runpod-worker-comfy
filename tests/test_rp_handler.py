@@ -5,6 +5,12 @@ import os
 import json
 import base64
 
+# Mock modules before importing rp_handler
+sys.modules['runpod'] = MagicMock()
+sys.modules['runpod.serverless'] = MagicMock()
+sys.modules['runpod.serverless.utils'] = MagicMock()
+sys.modules['runpod.serverless.utils.rp_upload'] = MagicMock()
+
 # Make sure that "src" is known and can be used to import rp_handler.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 from src import rp_handler
