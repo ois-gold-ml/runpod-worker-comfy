@@ -3,7 +3,6 @@ from unittest.mock import patch, MagicMock, mock_open, Mock
 import sys
 import os
 import json
-import base64
 import requests
 
 # Mock modules before importing rp_handler
@@ -11,6 +10,8 @@ sys.modules['runpod'] = MagicMock()
 sys.modules['runpod.serverless'] = MagicMock()
 sys.modules['runpod.serverless.utils'] = MagicMock()
 sys.modules['runpod.serverless.utils.rp_upload'] = MagicMock()
+sys.modules['tusclient'] = MagicMock()
+sys.modules['tusclient.client'] = MagicMock()
 
 # Make sure that "src" is known and can be used to import rp_handler.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
@@ -119,93 +120,131 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(result, {"key": "value"})
         mock_urlopen.assert_called_with("http://127.0.0.1:8188/history/123")
 
-    @patch("builtins.open", new_callable=mock_open, read_data=b"test")
-    def test_base64_encode(self, mock_file):
-        test_data = base64.b64encode(b"test").decode("utf-8")
-
-        result = rp_handler.base64_encode("dummy_path")
-
-        self.assertEqual(result, test_data)
-
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("rp_handler.tus_client.TusClient")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_bucket_endpoint_not_configured(self, mock_upload_image, mock_exists):
+    def test_process_output_images_with_upload_url_parameter(self, mock_tus_client, mock_exists):
+        """Test that process_output_images correctly uses the upload_url parameter."""
+        # Mock file exists
         mock_exists.return_value = True
-        mock_upload_image.return_value = "simulated_uploaded/image.png"
-
+        
+        # Mock TUS client uploader
+        mock_uploader = MagicMock()
+        mock_uploader.url = "http://example.com/tus/uploaded_file"
+        mock_tus_client.return_value.uploader.return_value = mock_uploader
+        
+        # Test data
         outputs = {
             "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
         }
-        job_id = "123"
-
-        result = rp_handler.process_output_images(outputs, job_id)
-
-        self.assertEqual(result["status"], "success")
-
-    @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
-    @patch.dict(
-        os.environ,
-        {
-            "COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES,
-            "BUCKET_ENDPOINT_URL": "http://example.com",
-        },
-    )
-    def test_bucket_endpoint_configured(self, mock_upload_image, mock_exists):
-        # Mock the os.path.exists to return True, simulating that the image exists
-        mock_exists.return_value = True
-
-        # Mock the rp_upload.upload_image to return a simulated URL
-        mock_upload_image.return_value = "http://example.com/uploaded/image.png"
-
-        # Define the outputs and job_id for the test
-        outputs = {"node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": "test"}]}}
-        job_id = "123"
-
-        # Call the function under test
-        result = rp_handler.process_output_images(outputs, job_id)
-
-        # Assertions
-        self.assertEqual(result["status"], "success")
-        self.assertEqual(result["message"], "http://example.com/uploaded/image.png")
-        mock_upload_image.assert_called_once_with(
-            job_id, "./test_resources/images/test/ComfyUI_00001_.png"
+        job_id = "test_job"
+        upload_url = "http://example.com/tus" 
+        
+        # Call the function directly
+        result = rp_handler.process_output_images(outputs, job_id, upload_url)
+        
+        # Verify TUS client was created with the correct upload_url
+        mock_tus_client.assert_called_once_with(upload_url)
+        
+        # Verify uploader was created and upload was called
+        uploader_path = f"{RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}/ComfyUI_00001_.png"
+        mock_tus_client.return_value.uploader.assert_called_once_with(
+            uploader_path, chunk_size=5*1024*1024
         )
-
+        mock_uploader.upload.assert_called_once()
+        
+        # Verify the result contains the expected values
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["message"], "http://example.com/tus/uploaded_file")
+        
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("rp_handler.tus_client.TusClient")
     @patch.dict(
-        os.environ,
-        {
-            "COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES,
-            "BUCKET_ENDPOINT_URL": "http://example.com",
-            "BUCKET_ACCESS_KEY_ID": "",
-            "BUCKET_SECRET_ACCESS_KEY": "",
-        },
+        os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_bucket_image_upload_fails_env_vars_wrong_or_missing(
-        self, mock_upload_image, mock_exists
-    ):
-        # Simulate the file existing in the output path
+    def test_process_output_images_upload_fails(self, mock_tus_client, mock_exists):
+        # Mock the file existing
         mock_exists.return_value = True
-
-        # When AWS credentials are wrong or missing, upload_image should return 'simulated_uploaded/...'
-        mock_upload_image.return_value = "simulated_uploaded/image.png"
-
+        
+        # Mock TUS client with upload exception
+        mock_tus_client.return_value.uploader.side_effect = Exception("Upload failed")
+        
+        # Test data
         outputs = {
             "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
         }
-        job_id = "123"
+        job_id = "test_job"
+        upload_url = "http://example.com/tus"
+        
+        # Call the function under test
+        result = rp_handler.process_output_images(outputs, job_id, upload_url)
+        
+        # Assertions
+        self.assertEqual(result["status"], "error")
+        self.assertIn("Error uploading image using TUS protocol", result["message"])
 
-        result = rp_handler.process_output_images(outputs, job_id)
+    @patch("rp_handler.os.path.exists")
+    @patch.dict(
+        os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
+    )
+    def test_process_output_images_no_upload_url(self, mock_exists):
+        # Test data
+        outputs = {
+            "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
+        }
+        job_id = "test_job"
+        upload_url = None
+        
+        # Call the function under test
+        result = rp_handler.process_output_images(outputs, job_id, upload_url)
+        
+        # Assertions
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["message"], "No upload URL provided in the job output property")
 
-        # Check if the image was saved to the 'simulated_uploaded' directory
-        self.assertIn("simulated_uploaded", result["message"])
-        self.assertEqual(result["status"], "success")
-
+    @patch("rp_handler.os.path.exists")
+    @patch.dict(
+        os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
+    )
+    def test_process_output_images_file_not_exists(self, mock_exists):
+        # Mock the file not existing
+        mock_exists.return_value = False
+        
+        # Test data
+        outputs = {
+            "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
+        }
+        job_id = "test_job" 
+        upload_url = "http://example.com/tus"
+        
+        # Call the function under test
+        result = rp_handler.process_output_images(outputs, job_id, upload_url)
+        
+        # Assertions
+        self.assertEqual(result["status"], "error")
+        self.assertIn("does not exist in the specified output folder", result["message"])
+    
+    @patch("rp_handler.validate_input")
+    def test_handler_without_upload_url(self, mock_validate):
+        # Setup mock to pass validation
+        mock_validate.return_value = ({"workflow": {"test": "workflow"}, "input": None}, None)
+        
+        # Create job without upload_url
+        job = {
+            "id": "test_job",
+            "input": {"workflow": {"test": "workflow"}}
+            # No output property
+        }
+        
+        # Call the handler
+        result = rp_handler.handler(job)
+        
+        # Assertions
+        self.assertIn("error", result)
+        self.assertEqual(result["error"], "No upload URL provided in the job output property")
+        
     @patch("rp_handler.requests.get")
     def test_download_image_successful(self, mock_get):
         # Create a mock response for the GET request
@@ -288,7 +327,8 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertIn("Error uploading", result["message"])
         mock_post.assert_called_once()
 
-    def test_upload_image_to_comfy_no_data(self):
+    @patch("rp_handler.requests.post")
+    def test_upload_image_to_comfy_no_data(self, mock_post):
         # Test with no image data
         result = rp_handler.upload_image_to_comfy(None)
 
