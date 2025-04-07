@@ -47,6 +47,7 @@ RUN chmod +x /start.sh /install_custom_nodes.sh
 
 # Install custom nodes
 RUN /install_custom_nodes.sh
+RUN comfy node install comfyui_controlnet_aux
 
 # Start container
 CMD ["/start.sh"]
@@ -62,8 +63,6 @@ WORKDIR /comfyui
 
 # Create necessary directories
 RUN mkdir -p models/checkpoints models/vae
-
-RUN comfy node install Fannovel16/comfyui_controlnet_aux
 
 # Download checkpoints/vae/LoRA to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
