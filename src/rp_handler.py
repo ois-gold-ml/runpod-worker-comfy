@@ -51,19 +51,13 @@ def validate_input(job_input):
     if workflow is None:
         return None, "Missing 'workflow' parameter"
 
-    # Validate 'images' in input, if provided
-    images = job_input.get("images")
-    if images is not None:
-        if not isinstance(images, list) or not all(
-            "name" in image and "image" in image for image in images
-        ):
-            return (
-                None,
-                "'images' must be a list of objects with 'name' and 'image' keys",
-            )
+    # Validate 'input' in input, if provided
+    input_url = job_input.get("input")
+    if input_url is not None and not isinstance(input_url, str):
+        return None, "'input' must be a string containing a presigned URL"
 
     # Return validated data and no error
-    return {"workflow": workflow, "images": images}, None
+    return {"workflow": workflow, "input": input_url}, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -100,57 +94,78 @@ def check_server(url, retries=500, delay=50):
     return False
 
 
-def upload_images(images):
+def download_image(url):
     """
-    Upload a list of base64 encoded images to the ComfyUI server using the /upload/image endpoint.
+    Download an image from a presigned URL.
 
     Args:
-        images (list): A list of dictionaries, each containing the 'name' of the image and the 'image' as a base64 encoded string.
-        server_address (str): The address of the ComfyUI server.
+        url (str): The presigned URL to download the image from.
 
     Returns:
-        list: A list of responses from the server for each image upload.
+        tuple: A tuple containing (success_flag, data_or_error_message).
+               If successful, returns (True, image_data).
+               If unsuccessful, returns (False, error_message).
     """
-    if not images:
-        return {"status": "success", "message": "No images to upload", "details": []}
+    try:
+        print(f"runpod-worker-comfy - downloading image from {url}")
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        
+        # Extract filename from URL or use a default name
+        try:
+            filename = os.path.basename(urllib.parse.urlparse(url).path)
+            if not filename or '.' not in filename:
+                filename = "downloaded_image.png"
+        except:
+            filename = "downloaded_image.png"
+            
+        return True, (filename, response.content)
+    except requests.RequestException as e:
+        error_message = f"Error downloading image: {str(e)}"
+        print(f"runpod-worker-comfy - {error_message}")
+        return False, error_message
 
-    responses = []
-    upload_errors = []
 
-    print(f"runpod-worker-comfy - image(s) upload")
+def upload_image_to_comfy(image_data):
+    """
+    Upload an image to the ComfyUI server using the /upload/image endpoint.
 
-    for image in images:
-        name = image["name"]
-        image_data = image["image"]
-        blob = base64.b64decode(image_data)
+    Args:
+        image_data (tuple): A tuple containing (filename, binary_data) of the image.
 
+    Returns:
+        dict: A dictionary containing the status and details of the upload.
+    """
+    if not image_data:
+        return {"status": "error", "message": "No image data provided"}
+
+    filename, binary_data = image_data
+    print(f"runpod-worker-comfy - uploading image: {filename}")
+
+    try:
         # Prepare the form data
         files = {
-            "image": (name, BytesIO(blob), "image/png"),
+            "image": (filename, BytesIO(binary_data), "image/png"),
             "overwrite": (None, "true"),
         }
 
         # POST request to upload the image
         response = requests.post(f"http://{COMFY_HOST}/upload/image", files=files)
-        if response.status_code != 200:
-            upload_errors.append(f"Error uploading {name}: {response.text}")
-        else:
-            responses.append(f"Successfully uploaded {name}")
-
-    if upload_errors:
-        print(f"runpod-worker-comfy - image(s) upload with errors")
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        
+        print(f"runpod-worker-comfy - image upload complete")
+        return {
+            "status": "success",
+            "message": f"Successfully uploaded {filename}",
+            "filename": filename
+        }
+    except requests.RequestException as e:
+        error_message = f"Error uploading {filename}: {str(e)}"
+        print(f"runpod-worker-comfy - {error_message}")
         return {
             "status": "error",
-            "message": "Some images failed to upload",
-            "details": upload_errors,
+            "message": error_message
         }
-
-    print(f"runpod-worker-comfy - image(s) upload complete")
-    return {
-        "status": "success",
-        "message": "All images uploaded successfully",
-        "details": responses,
-    }
 
 
 def queue_workflow(workflow):
@@ -295,7 +310,7 @@ def handler(job):
 
     # Extract validated data
     workflow = validated_data["workflow"]
-    images = validated_data.get("images")
+    input_url = validated_data.get("input")
 
     # Make sure that the ComfyUI API is available
     check_server(
@@ -304,11 +319,15 @@ def handler(job):
         COMFY_API_AVAILABLE_INTERVAL_MS,
     )
 
-    # Upload images if they exist
-    upload_result = upload_images(images)
-
-    if upload_result["status"] == "error":
-        return upload_result
+    # Download and upload image if URL is provided
+    if input_url:
+        success, result = download_image(input_url)
+        if not success:
+            return {"error": result}
+        
+        upload_result = upload_image_to_comfy(result)
+        if upload_result["status"] == "error":
+            return {"error": upload_result["message"]}
 
     # Queue the workflow
     try:

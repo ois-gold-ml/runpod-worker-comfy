@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import base64
+import requests
 
 # Mock modules before importing rp_handler
 sys.modules['runpod'] = MagicMock()
@@ -24,33 +25,31 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         input_data = {"workflow": {"key": "value"}}
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "images": None})
+        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "input": None})
 
-    def test_valid_input_with_workflow_and_images(self):
+    def test_valid_input_with_workflow_and_input_url(self):
         input_data = {
             "workflow": {"key": "value"},
-            "images": [{"name": "image1.png", "image": "base64string"}],
+            "input": "https://example.com/image.png",
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
         self.assertEqual(validated_data, input_data)
 
     def test_input_missing_workflow(self):
-        input_data = {"images": [{"name": "image1.png", "image": "base64string"}]}
+        input_data = {"input": "https://example.com/image.png"}
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNotNone(error)
         self.assertEqual(error, "Missing 'workflow' parameter")
 
-    def test_input_with_invalid_images_structure(self):
+    def test_input_with_invalid_input_url_type(self):
         input_data = {
             "workflow": {"key": "value"},
-            "images": [{"name": "image1.png"}],  # Missing 'image' key
+            "input": 123,  # Not a string
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNotNone(error)
-        self.assertEqual(
-            error, "'images' must be a list of objects with 'name' and 'image' keys"
-        )
+        self.assertEqual(error, "'input' must be a string containing a presigned URL")
 
     def test_invalid_json_string_input(self):
         input_data = "invalid json"
@@ -62,7 +61,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         input_data = '{"workflow": {"key": "value"}}'
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "images": None})
+        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "input": None})
 
     def test_empty_input(self):
         input_data = None
@@ -81,7 +80,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
     @patch("rp_handler.requests.get")
     def test_check_server_server_down(self, mock_requests):
-        mock_requests.get.side_effect = rp_handler.requests.RequestException()
+        mock_requests.side_effect = rp_handler.requests.RequestException()
         result = rp_handler.check_server("http://127.0.0.1:8188", 1, 50)
         self.assertFalse(result)
 
@@ -207,34 +206,92 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertIn("simulated_uploaded", result["message"])
         self.assertEqual(result["status"], "success")
 
-    @patch("rp_handler.requests.post")
-    def test_upload_images_successful(self, mock_post):
-        mock_response = unittest.mock.Mock()
+    @patch("rp_handler.requests.get")
+    def test_download_image_successful(self, mock_get):
+        # Create a mock response for the GET request
+        mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.text = "Successfully uploaded"
-        mock_post.return_value = mock_response
+        mock_response.content = b"Test Image Data"
+        mock_response.raise_for_status = MagicMock()
+        mock_get.return_value = mock_response
 
-        test_image_data = base64.b64encode(b"Test Image Data").decode("utf-8")
+        # Test URL with a valid filename
+        url = "https://example.com/images/test_image.png"
+        success, result = rp_handler.download_image(url)
 
-        images = [{"name": "test_image.png", "image": test_image_data}]
+        # Assertions
+        self.assertTrue(success)
+        self.assertEqual(result[0], "test_image.png")  # Filename
+        self.assertEqual(result[1], b"Test Image Data")  # Image data
+        mock_get.assert_called_with(url, stream=True)
 
-        responses = rp_handler.upload_images(images)
+    @patch("rp_handler.requests.get")
+    def test_download_image_with_invalid_url(self, mock_get):
+        # Mock a failed request
+        mock_get.side_effect = requests.RequestException("Failed to download")
 
-        self.assertEqual(len(responses), 3)
-        self.assertEqual(responses["status"], "success")
+        url = "https://example.com/invalid_image.png"
+        success, error_message = rp_handler.download_image(url)
+
+        # Assertions
+        self.assertFalse(success)
+        self.assertIn("Error downloading image", error_message)
+        mock_get.assert_called_with(url, stream=True)
+
+    @patch("rp_handler.requests.get")
+    def test_download_image_with_url_no_filename(self, mock_get):
+        # Create a mock response for the GET request
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = b"Test Image Data"
+        mock_response.raise_for_status = MagicMock()
+        mock_get.return_value = mock_response
+
+        # Test URL without a filename
+        url = "https://example.com/images/"
+        success, result = rp_handler.download_image(url)
+
+        # Assertions
+        self.assertTrue(success)
+        self.assertEqual(result[0], "downloaded_image.png")  # Default filename
+        self.assertEqual(result[1], b"Test Image Data")  # Image data
 
     @patch("rp_handler.requests.post")
-    def test_upload_images_failed(self, mock_post):
-        mock_response = unittest.mock.Mock()
-        mock_response.status_code = 400
-        mock_response.text = "Error uploading"
+    def test_upload_image_to_comfy_successful(self, mock_post):
+        # Create a mock response for the POST request
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
         mock_post.return_value = mock_response
 
-        test_image_data = base64.b64encode(b"Test Image Data").decode("utf-8")
+        # Test data
+        image_data = ("test_image.png", b"Test Image Data")
+        result = rp_handler.upload_image_to_comfy(image_data)
 
-        images = [{"name": "test_image.png", "image": test_image_data}]
+        # Assertions
+        self.assertEqual(result["status"], "success")
+        self.assertIn("Successfully uploaded", result["message"])
+        self.assertEqual(result["filename"], "test_image.png")
+        mock_post.assert_called_once()
 
-        responses = rp_handler.upload_images(images)
+    @patch("rp_handler.requests.post")
+    def test_upload_image_to_comfy_failed(self, mock_post):
+        # Mock a failed request
+        mock_post.side_effect = requests.RequestException("Failed to upload")
 
-        self.assertEqual(len(responses), 3)
-        self.assertEqual(responses["status"], "error")
+        # Test data
+        image_data = ("test_image.png", b"Test Image Data")
+        result = rp_handler.upload_image_to_comfy(image_data)
+
+        # Assertions
+        self.assertEqual(result["status"], "error")
+        self.assertIn("Error uploading", result["message"])
+        mock_post.assert_called_once()
+
+    def test_upload_image_to_comfy_no_data(self):
+        # Test with no image data
+        result = rp_handler.upload_image_to_comfy(None)
+
+        # Assertions
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["message"], "No image data provided")
