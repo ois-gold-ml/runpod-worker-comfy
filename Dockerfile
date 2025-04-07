@@ -47,7 +47,7 @@ ADD src/start.sh src/install_custom_nodes.sh src/custom_nodes.txt src/rp_handler
 RUN chmod +x /start.sh /install_custom_nodes.sh
 
 # Install custom nodes
-RUN comfy node install comfyui-tensorops save-image-extended-comfyui comfyui-florence2 comfyui-depthanythingv2 comfyui_essentials comfy-easy-grids derfuu_comfyui_moddednodes comfyui_controlnet_aux comfyui-manager ComfyUI-Custom-Scripts 
+RUN comfy node install comfyui-tensorops save-image-extended-comfyui comfyui-florence2 comfyui-depthanythingv2 comfyui_essentials comfy-easy-grids derfuu_comfyui_moddednodes comfyui_controlnet_aux comfyui-manager comfyui-custom-scripts
 
 # Start container
 CMD ["/start.sh"]
