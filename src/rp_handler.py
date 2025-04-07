@@ -1,13 +1,12 @@
 import runpod
-from runpod.serverless.utils import rp_upload
 import json
 import urllib.request
 import urllib.parse
 import time
 import os
 import requests
-import base64
 from io import BytesIO
+from tusclient import client as tus_client
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -200,49 +199,25 @@ def get_history(prompt_id):
         return json.loads(response.read())
 
 
-def base64_encode(img_path):
+def process_output_images(outputs, job_id, upload_url=None):
     """
-    Returns base64 encoded image.
-
-    Args:
-        img_path (str): The path to the image
-
-    Returns:
-        str: The base64 encoded image
-    """
-    with open(img_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-        return f"{encoded_string}"
-
-
-def process_output_images(outputs, job_id):
-    """
-    This function takes the "outputs" from image generation and the job ID,
-    then determines the correct way to return the image, either as a direct URL
-    to an AWS S3 bucket or as a base64 encoded string, depending on the
-    environment configuration.
+    This function processes output images and uploads them using the TUS protocol.
 
     Args:
         outputs (dict): A dictionary containing the outputs from image generation,
                         typically includes node IDs and their respective output data.
         job_id (str): The unique identifier for the job.
+        upload_url (str): The URL to upload the image to using the TUS protocol.
 
     Returns:
         dict: A dictionary with the status ('success' or 'error') and the message,
-              which is either the URL to the image in the AWS S3 bucket or a base64
-              encoded string of the image. In case of error, the message details the issue.
-
-    The function works as follows:
-    - It first determines the output path for the images from an environment variable,
-      defaulting to "/comfyui/output" if not set.
-    - It then iterates through the outputs to find the filenames of the generated images.
-    - After confirming the existence of the image in the output folder, it checks if the
-      AWS S3 bucket is configured via the BUCKET_ENDPOINT_URL environment variable.
-    - If AWS S3 is configured, it uploads the image to the bucket and returns the URL.
-    - If AWS S3 is not configured, it encodes the image in base64 and returns the string.
-    - If the image file does not exist in the output folder, it returns an error status
-      with a message indicating the missing image file.
+              which is the URL to the uploaded image or an error message.
     """
+    if upload_url is None:
+        return {
+            "status": "error",
+            "message": "No upload URL provided in the job output property",
+        }
 
     # The path where ComfyUI stores the generated images
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
@@ -263,23 +238,36 @@ def process_output_images(outputs, job_id):
 
     # The image is in the output folder
     if os.path.exists(local_image_path):
-        if os.environ.get("BUCKET_ENDPOINT_URL", False):
-            # URL to image in AWS S3
-            image = rp_upload.upload_image(job_id, local_image_path)
-            print(
-                "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
-            )
-        else:
-            # base64 image
-            image = base64_encode(local_image_path)
-            print(
-                "runpod-worker-comfy - the image was generated and converted to base64"
-            )
-
-        return {
-            "status": "success",
-            "message": image,
-        }
+        try:
+            # Create a TUS client
+            my_client = tus_client.TusClient(upload_url, headers={'Authorization': 'Basic xxyyZZAAbbCC='})
+            
+            # Get the file size
+            file_size = os.path.getsize(local_image_path)
+            
+            # Set up the uploader
+            print(f"runpod-worker-comfy - uploading image using TUS protocol to {upload_url}")
+            uploader = my_client.uploader(local_image_path, chunk_size=5*1024*1024)
+            
+            # Upload the file
+            uploader.upload()
+            
+            # Get the URL of the uploaded file
+            uploaded_url = uploader.url
+            
+            print(f"runpod-worker-comfy - the image was uploaded using TUS protocol")
+            
+            return {
+                "status": "success",
+                "message": uploaded_url,
+            }
+        except Exception as e:
+            error_message = f"Error uploading image using TUS protocol: {str(e)}"
+            print(f"runpod-worker-comfy - {error_message}")
+            return {
+                "status": "error",
+                "message": error_message,
+            }
     else:
         print("runpod-worker-comfy - the image does not exist in the output folder")
         return {
@@ -311,6 +299,14 @@ def handler(job):
     # Extract validated data
     workflow = validated_data["workflow"]
     input_url = validated_data.get("input")
+
+    # Check if upload_url is provided in the job
+    upload_url = None
+    # check if job[output] is a valid url:
+    if "output" in job and urllib.parse.urlparse(job["output"]).scheme:
+        upload_url = job["output"]
+    else:
+        return {"error": "No upload URL provided in the job output property"}
 
     # Make sure that the ComfyUI API is available
     check_server(
@@ -356,8 +352,8 @@ def handler(job):
     except Exception as e:
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
-    # Get the generated image and return it as URL in an AWS bucket or as base64
-    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
+    # Get the generated image and upload it using TUS protocol
+    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"], upload_url)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
