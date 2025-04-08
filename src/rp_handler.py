@@ -240,7 +240,7 @@ def process_output_images(outputs, job_id, upload_url=None):
     if os.path.exists(local_image_path):
         try:
             # Create a TUS client
-            my_client = tus_client.TusClient(upload_url, headers={'Authorization': 'Basic xxyyZZAAbbCC='})
+            my_client = tus_client.TusClient(upload_url)
             
             # Get the file size
             file_size = os.path.getsize(local_image_path)

@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  integration-tests:
+    build:
+      context: ../..
+      dockerfile: tests/integration/Dockerfile
+    volumes:
+      # Mount the current directory to capture test results
+      - ./:/app/tests/integration
+      # Mount the source code
+      - ../../src:/app/src
+      # Explicitly mount the data directory
+      - ./data:/app/tests/integration/data
+    environment:
+      - PYTHONPATH=/app
+      - COMFY_OUTPUT_PATH=/tmp/comfyui_output
+      - COMFY_HOST=127.0.0.1:8188
+      - COMFY_POLLING_INTERVAL_MS=100
+      - COMFY_POLLING_MAX_RETRIES=100
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
