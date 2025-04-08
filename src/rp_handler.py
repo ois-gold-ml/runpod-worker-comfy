@@ -222,22 +222,26 @@ def process_output_images(outputs, job_id, upload_url=None):
     # The path where ComfyUI stores the generated images
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
 
-    output_images = {}
+    output_images = []
+    uploaded_urls = []
 
+    # Collect all image paths
     for node_id, node_output in outputs.items():
         if "images" in node_output:
             for image in node_output["images"]:
-                output_images = os.path.join(image["subfolder"], image["filename"])
+                image_path = os.path.join(image["subfolder"], image["filename"])
+                output_images.append(image_path)
 
-    print(f"runpod-worker-comfy - image generation is done")
+    print(f"runpod-worker-comfy - found {len(output_images)} images to upload")
 
-    # expected image output folder
-    local_image_path = f"{COMFY_OUTPUT_PATH}/{output_images}"
+    # Upload each image
+    for image_path in output_images:
+        local_image_path = f"{COMFY_OUTPUT_PATH}/{image_path}"
+        
+        if not os.path.exists(local_image_path):
+            print(f"runpod-worker-comfy - image does not exist: {local_image_path}")
+            continue
 
-    print(f"runpod-worker-comfy - {local_image_path}")
-
-    # The image is in the output folder
-    if os.path.exists(local_image_path):
         try:
             # Create a TUS client
             my_client = tus_client.TusClient(upload_url)
@@ -246,7 +250,7 @@ def process_output_images(outputs, job_id, upload_url=None):
             file_size = os.path.getsize(local_image_path)
             
             # Set up the uploader
-            print(f"runpod-worker-comfy - uploading image using TUS protocol to {upload_url}")
+            print(f"runpod-worker-comfy - uploading image {image_path} using TUS protocol to {upload_url}")
             uploader = my_client.uploader(local_image_path, chunk_size=5*1024*1024)
             
             # Upload the file
@@ -254,26 +258,29 @@ def process_output_images(outputs, job_id, upload_url=None):
             
             # Get the URL of the uploaded file
             uploaded_url = uploader.url
+            uploaded_urls.append(uploaded_url)
             
-            print(f"runpod-worker-comfy - the image was uploaded using TUS protocol")
+            print(f"runpod-worker-comfy - image {image_path} was uploaded successfully")
             
-            return {
-                "status": "success",
-                "message": uploaded_url,
-            }
         except Exception as e:
-            error_message = f"Error uploading image using TUS protocol: {str(e)}"
+            error_message = f"Error uploading image {image_path} using TUS protocol: {str(e)}"
             print(f"runpod-worker-comfy - {error_message}")
             return {
                 "status": "error",
                 "message": error_message,
             }
-    else:
-        print("runpod-worker-comfy - the image does not exist in the output folder")
+
+    if not uploaded_urls:
         return {
             "status": "error",
-            "message": f"the image does not exist in the specified output folder: {local_image_path}",
+            "message": "No images were successfully uploaded",
         }
+
+    return {
+        "status": "success",
+        "message": uploaded_urls[0],  # Return the first URL for backward compatibility
+        "all_urls": uploaded_urls,    # Include all URLs in the response
+    }
 
 
 def handler(job):

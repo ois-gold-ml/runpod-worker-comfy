@@ -183,7 +183,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         
         # Assertions
         self.assertEqual(result["status"], "error")
-        self.assertIn("Error uploading image using TUS protocol", result["message"])
+        self.assertIn("Error uploading image ComfyUI_00001_.png using TUS protocol", result["message"])
 
     @patch("rp_handler.os.path.exists")
     @patch.dict(
@@ -224,7 +224,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         
         # Assertions
         self.assertEqual(result["status"], "error")
-        self.assertIn("does not exist in the specified output folder", result["message"])
+        self.assertEqual(result["message"], "No images were successfully uploaded")
     
     @patch("rp_handler.validate_input")
     def test_handler_without_upload_url(self, mock_validate):
