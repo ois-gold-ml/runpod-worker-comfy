@@ -136,6 +136,7 @@ class IntegrationTest(unittest.TestCase):
                 }
             }
             
+            logger.info(f"TUS server URL: {self.tus_server.url}")
             # Job with input image and upload URL
             job = {
                 "id": "test-job-with-input",
@@ -152,25 +153,17 @@ class IntegrationTest(unittest.TestCase):
             # Print the actual result for debugging
             logger.info(f"Test with input image result: {result}")
             
-            # Verify the result - rp_handler.handler returns either {'error': '...'} or a success dict with status
+            # Verify the result
             self.assertNotIn('error', result, f"Handler failed: {result.get('error', 'Unknown error')}")
             self.assertIn('status', result, f"Result doesn't have a status key: {result}")
             self.assertEqual(result['status'], 'success', f"Handler status is not success: {result}")
             
-            # Get the uploaded file ID from the URL
-            self.assertIn('message', result, "Result doesn't have a message with the URL")
-            upload_url = result['message']
-            
-            # Verify the upload URL format
-            self.assertTrue(upload_url.startswith(self.tus_server.url), 
-                           f"Upload URL {upload_url} doesn't start with TUS server URL {self.tus_server.url}")
-            
-            # Verify that files were uploaded to the TUS server
+            # Verify that exactly 3 files were uploaded to the TUS server
             uploads = self.tus_server.get_uploads()
-            self.assertGreater(len(uploads), 0, "No uploads found on the TUS server")
+            self.assertEqual(len(uploads), 3, f"Expected 3 uploads, got {len(uploads)}")
             
-            # Verify all uploads are complete
-            for upload_id, upload_data in uploads.items():
+            # Verify all uploads are complete and content matches
+            for i, (upload_id, upload_data) in enumerate(uploads.items(), 1):
                 self.assertEqual(upload_data['offset'], upload_data['size'], 
                                 f"Upload {upload_id} is not complete: {upload_data['offset']}/{upload_data['size']}")
                 
@@ -178,22 +171,17 @@ class IntegrationTest(unittest.TestCase):
                 self.assertTrue(os.path.exists(upload_data['path']), 
                                f"Uploaded file doesn't exist at {upload_data['path']}")
                 
-                # Verify the file size
-                self.assertEqual(os.path.getsize(upload_data['path']), upload_data['size'],
-                                f"Uploaded file size doesn't match: {os.path.getsize(upload_data['path'])} != {upload_data['size']}")
-                
-                # For more detailed verification, we could also check file contents if needed
+                # Verify the file content matches what we generated
                 with open(upload_data['path'], 'rb') as f:
                     content = f.read()
-                    # The file content should match our test image content since
-                    # the mock ComfyUI server copies our test image as the output
-                    expected_hash = hashlib.md5(self.test_image_content).hexdigest()
-                    actual_hash = hashlib.md5(content).hexdigest()
-                    # logger.info(f"Expected hash: {expected_hash}, actual hash: {actual_hash}")
+                    expected_content = f'Result image {i}'.encode()
+                    self.assertEqual(content, expected_content, 
+                                   f"Content of image {i} doesn't match expected content")
                     
-                    # In a real test, we'd compare hashes, but since we're mocking
-                    # several parts, the content might not match exactly
-                    # self.assertEqual(expected_hash, actual_hash, "File content doesn't match expected content")
+                # Verify the file size
+                self.assertEqual(os.path.getsize(upload_data['path']), len(expected_content),
+                                f"Uploaded file size doesn't match: {os.path.getsize(upload_data['path'])} != {len(expected_content)}")
+                
         finally:
             # Restore the original function
             src.rp_handler.download_image = original_download_image

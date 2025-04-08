@@ -38,21 +38,26 @@ def handle_prompt():
         # Schedule completion after a brief delay
         def complete_job():
             time.sleep(1)  # Reduced time for faster tests
-            # Create test output image
-            test_image_path = os.path.join(output_dir, 'test_output.png')
-            # Write result data
-            with open(test_image_path, 'wb') as f:
-                f.write(b'Result image 1')
+            # Create test output images
+            for i in range(1, 4):
+                test_image_path = os.path.join(output_dir, f'test_output_{i}.png')
+                # Write distinct content for each image
+                with open(test_image_path, 'wb') as f:
+                    f.write(f'Result image {i}'.encode())
             
-            # Update prompt with output information
+            # Update prompt with output information for all 3 images
             prompts[prompt_id] = {
                 'outputs': {
                     'node_id': {
-                        'images': [{'filename': 'test_output.png', 'subfolder': ''}]
+                        'images': [
+                            {'filename': 'test_output_1.png', 'subfolder': ''},
+                            {'filename': 'test_output_2.png', 'subfolder': ''},
+                            {'filename': 'test_output_3.png', 'subfolder': ''}
+                        ]
                     }
                 }
             }
-            print(f"ComfyUI Mock Server: Job complete, output at {test_image_path}")
+            print(f"ComfyUI Mock Server: Job complete, created 3 output images")
             log_prompts()
         
         # Start the completion in a background thread
