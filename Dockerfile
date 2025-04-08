@@ -33,8 +33,11 @@ RUN /usr/bin/yes | comfy --workspace /comfyui install --cuda-version 11.8 --nvid
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
-# Install runpod
-RUN pip install runpod requests
+# Copy requirements.txt first to leverage Docker cache
+COPY requirements.txt /requirements.txt
+
+# Install all dependencies from requirements.txt
+RUN pip install -r /requirements.txt
 
 # Support for the network volume
 ADD src/extra_model_paths.yaml ./
