@@ -47,6 +47,7 @@ WORKDIR /
 
 # Add scripts
 ADD src/start.sh src/install_custom_nodes.sh src/custom_nodes.txt src/rp_handler.py workflow.json ./
+ADD config.ini /comfyui/user/default/ComfyUI-Manager
 RUN chmod +x /start.sh /install_custom_nodes.sh
 
 # Install custom nodes
