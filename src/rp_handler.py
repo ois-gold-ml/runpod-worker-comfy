@@ -26,7 +26,7 @@ REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
 WORKFLOW_FILE = os.environ.get("WORKFLOW_FILE", "/workflow.json")
 
 
-def load_workflow():
+def load_workflow(input_url: str):
     """
     Load the workflow from the JSON file.
 
@@ -38,6 +38,13 @@ def load_workflow():
         print(f"\nAttempting to load workflow from: {WORKFLOW_FILE}")
         with open(WORKFLOW_FILE, 'r') as f:
             workflow = json.load(f)
+            
+        # Update the workflow with the new filename
+        # Find the LoadImageFromUrlOrPath node and update its image input
+        for node_id, node_data in workflow.items():
+            if node_data.get("class_type") == "LoadImageFromUrlOrPath":
+                node_data["inputs"]["url_or_path"] = input_url
+                break
         return workflow, None
     except Exception as e:
         return None, f"Error loading workflow file: {str(e)}"
@@ -67,8 +74,8 @@ def validate_input(job_input):
 
     # Validate 'input' in input, if provided
     input_url = job_input.get("input")
-    if input_url is not None and not isinstance(input_url, str):
-        return None, "'input' must be a string containing a presigned URL"
+    if not isinstance(input_url, str):
+        return None, "'input' must be a string containing an image URL"
 
     # Validate 'output' in input
     output_url = job_input.get("output")
@@ -327,7 +334,7 @@ def handler(job):
     upload_url = validated_data["output"]
 
     # Load workflow from file
-    workflow, error_message = load_workflow()
+    workflow, error_message = load_workflow(input_url)
     if error_message:
         return {"error": error_message}
 
@@ -337,23 +344,6 @@ def handler(job):
         COMFY_API_AVAILABLE_MAX_RETRIES,
         COMFY_API_AVAILABLE_INTERVAL_MS,
     )
-
-    # Download and upload image if URL is provided
-    if input_url:
-        success, result = download_image(input_url)
-        if not success:
-            return {"error": result}
-        
-        upload_result = upload_image_to_comfy(result)
-        if upload_result["status"] == "error":
-            return {"error": upload_result["message"]}
-        
-        # Update the workflow with the new filename
-        # Find the LoadImage node and update its image input
-        for node_id, node_data in workflow.items():
-            if node_data.get("class_type") == "LoadImage":
-                node_data["inputs"]["image"] = upload_result["filename"]
-                break
 
     # Queue the workflow
     try:
