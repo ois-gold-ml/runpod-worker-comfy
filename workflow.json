@@ -1,0 +1,831 @@
+{
+  "226": {
+    "inputs": {
+      "image": "12.jpg",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "227": {
+    "inputs": {
+      "ckpt_name": "FLUX-checkpoints/flux1-schnell-fp8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "228": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "229": {
+    "inputs": {
+      "filename_prefix": "",
+      "filename_keys": "denoise, D2_0.65-1,%F %H-%M-%S",
+      "foldername_prefix": "",
+      "foldername_keys": "ckpt_name, lora_name",
+      "delimiter": "-",
+      "save_job_data": "basic, models, sampler, prompt",
+      "job_data_per_image": false,
+      "job_custom_text": "",
+      "save_metadata": false,
+      "counter_digits": 4,
+      "counter_position": "last",
+      "one_counter_per_folder": true,
+      "image_preview": false,
+      "output_ext": ".jpg",
+      "quality": 90,
+      "named_keys": false,
+      "images": ["408", 0]
+    },
+    "class_type": "SaveImageExtended",
+    "_meta": {
+      "title": "💾 Save Image Extended 2.83"
+    }
+  },
+  "230": {
+    "inputs": {
+      "model": "depth_anything_v2_vitl_fp32.safetensors"
+    },
+    "class_type": "DownloadAndLoadDepthAnythingV2Model",
+    "_meta": {
+      "title": "DownloadAndLoadDepthAnythingV2Model"
+    }
+  },
+  "231": {
+    "inputs": {
+      "da_model": ["230", 0],
+      "images": ["456", 0]
+    },
+    "class_type": "DepthAnything_V2",
+    "_meta": {
+      "title": "Depth Anything V2"
+    }
+  },
+  "233": {
+    "inputs": {
+      "text": ["310", 0],
+      "clip": ["235", 1]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "234": {
+    "inputs": {
+      "text": "",
+      "clip": ["227", 1]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "235": {
+    "inputs": {
+      "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": ["227", 0],
+      "clip": ["227", 1]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "237": {
+    "inputs": {
+      "strength": 0.6,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": ["241", 0],
+      "negative": ["234", 0],
+      "control_net": ["362", 0],
+      "vae": ["228", 0],
+      "image": ["231", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "241": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": ["233", 0]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "244": {
+    "inputs": {
+      "seed": 892353313836639,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.9500000000000001,
+      "model": ["235", 0],
+      "positive": ["237", 0],
+      "negative": ["237", 1],
+      "latent_image": ["249", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "248": {
+    "inputs": {
+      "samples": ["244", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "249": {
+    "inputs": {
+      "pixels": ["456", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "254": {
+    "inputs": {
+      "strength": 0.6,
+      "start_percent": 0,
+      "end_percent": 0.7000000000000001,
+      "positive": ["241", 0],
+      "negative": ["234", 0],
+      "control_net": ["255", 0],
+      "vae": ["228", 0],
+      "image": ["403", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "255": {
+    "inputs": {
+      "control_net_name": "FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "normal"
+    }
+  },
+  "273": {
+    "inputs": {
+      "merge_with_lineart": "lineart_standard",
+      "resolution": 1024,
+      "lineart_lower_bound": 0.1,
+      "lineart_upper_bound": 1,
+      "object_min_size": 100,
+      "object_connectivity": 4,
+      "image": ["456", 0]
+    },
+    "class_type": "AnyLineArtPreprocessor_aux",
+    "_meta": {
+      "title": "AnyLine Lineart"
+    }
+  },
+  "278": {
+    "inputs": {
+      "strength": 0.7000000000000001,
+      "start_percent": 0,
+      "end_percent": 0.8,
+      "positive": ["241", 0],
+      "negative": ["234", 0],
+      "control_net": ["286", 0],
+      "vae": ["228", 0],
+      "image": ["401", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "279": {
+    "inputs": {
+      "seed": 1041437406160873,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.9500000000000001,
+      "model": ["235", 0],
+      "positive": ["278", 0],
+      "negative": ["278", 1],
+      "latent_image": ["249", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "280": {
+    "inputs": {
+      "samples": ["279", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "281": {
+    "inputs": {
+      "filename_prefix": "",
+      "filename_keys": "denoise, H_07-08,%F %H-%M-%S",
+      "foldername_prefix": "",
+      "foldername_keys": "ckpt_name, lora_name",
+      "delimiter": "-",
+      "save_job_data": "basic, models, sampler, prompt",
+      "job_data_per_image": false,
+      "job_custom_text": "",
+      "save_metadata": false,
+      "counter_digits": 4,
+      "counter_position": "last",
+      "one_counter_per_folder": true,
+      "image_preview": false,
+      "output_ext": ".jpg",
+      "quality": 90,
+      "named_keys": false,
+      "images": ["412", 0]
+    },
+    "class_type": "SaveImageExtended",
+    "_meta": {
+      "title": "💾 Save Image Extended 2.83"
+    }
+  },
+  "286": {
+    "inputs": {
+      "control_net_name": "FLUX.1/flux-canny-controlnet-v3.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "H"
+    }
+  },
+  "288": {
+    "inputs": {
+      "images": ["412", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "H"
+    }
+  },
+  "290": {
+    "inputs": {
+      "images": ["408", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "d2"
+    }
+  },
+  "291": {
+    "inputs": {
+      "filename_prefix": "",
+      "filename_keys": "denoise, D_green_06-1,%F %H-%M-%S",
+      "foldername_prefix": "",
+      "foldername_keys": "ckpt_name, lora_name",
+      "delimiter": "-",
+      "save_job_data": "basic, models, sampler, prompt",
+      "job_data_per_image": false,
+      "job_custom_text": "",
+      "save_metadata": false,
+      "counter_digits": 4,
+      "counter_position": "last",
+      "one_counter_per_folder": true,
+      "image_preview": false,
+      "output_ext": ".jpg",
+      "quality": 90,
+      "named_keys": false,
+      "images": ["414", 0]
+    },
+    "class_type": "SaveImageExtended",
+    "_meta": {
+      "title": "💾 Save Image Extended 2.83"
+    }
+  },
+  "292": {
+    "inputs": {
+      "samples": ["293", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "293": {
+    "inputs": {
+      "seed": 310782001085160,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.9500000000000001,
+      "model": ["235", 0],
+      "positive": ["294", 0],
+      "negative": ["294", 1],
+      "latent_image": ["249", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "294": {
+    "inputs": {
+      "strength": 0.65,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": ["241", 0],
+      "negative": ["234", 0],
+      "control_net": ["362", 0],
+      "vae": ["228", 0],
+      "image": ["231", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "303": {
+    "inputs": {
+      "images": ["414", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "D"
+    }
+  },
+  "310": {
+    "inputs": {
+      "text_1": "melt ",
+      "text_2": ["312", 2],
+      "text_3": " smooth metal, fluid, new, glass  ",
+      "text_4": ", white background"
+    },
+    "class_type": "TextConcatenator",
+    "_meta": {
+      "title": "Text Concatenator"
+    }
+  },
+  "311": {
+    "inputs": {
+      "text": ["312", 2],
+      "text2": "A gold and silver ring with a round diamond in the center. There are small diamonds around the diamond. The band of the ring is gold."
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "сгенерированное описание"
+    }
+  },
+  "312": {
+    "inputs": {
+      "text_input": "",
+      "task": "more_detailed_caption",
+      "fill_mask": true,
+      "keep_model_loaded": true,
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": 720982550949281,
+      "image": ["456", 0],
+      "florence2_model": ["313", 0]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2Run"
+    }
+  },
+  "313": {
+    "inputs": {
+      "model": "microsoft/Florence-2-large-ft",
+      "precision": "fp32",
+      "attention": "sdpa"
+    },
+    "class_type": "DownloadAndLoadFlorence2Model",
+    "_meta": {
+      "title": "DownloadAndLoadFlorence2Model"
+    }
+  },
+  "325": {
+    "inputs": {
+      "text": ["310", 0],
+      "clip": ["235", 1]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "335": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": ["325", 0]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "345": {
+    "inputs": {
+      "seed": 371857149132521,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.9500000000000001,
+      "model": ["235", 0],
+      "positive": ["361", 0],
+      "negative": ["361", 1],
+      "latent_image": ["249", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "346": {
+    "inputs": {
+      "samples": ["345", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "348": {
+    "inputs": {
+      "seed": 248578054051088,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.9500000000000001,
+      "model": ["235", 0],
+      "positive": ["350", 0],
+      "negative": ["350", 1],
+      "latent_image": ["249", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "349": {
+    "inputs": {
+      "samples": ["348", 0],
+      "vae": ["228", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "350": {
+    "inputs": {
+      "strength": 0.4,
+      "start_percent": 0,
+      "end_percent": 0.8,
+      "positive": ["335", 0],
+      "negative": ["234", 0],
+      "control_net": ["362", 0],
+      "vae": ["228", 0],
+      "image": ["365", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "361": {
+    "inputs": {
+      "strength": 0.6,
+      "start_percent": 0,
+      "end_percent": 0.7000000000000001,
+      "positive": ["335", 0],
+      "negative": ["234", 0],
+      "control_net": ["362", 0],
+      "vae": ["228", 0],
+      "image": ["365", 0]
+    },
+    "class_type": "ControlNetApplySD3",
+    "_meta": {
+      "title": "Apply Controlnet with VAE"
+    }
+  },
+  "362": {
+    "inputs": {
+      "control_net_name": "FLUX.1/flux-depth-controlnet-v3.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "365": {
+    "inputs": {
+      "side_length": 1024,
+      "side": "Longest",
+      "upscale_method": "lanczos",
+      "crop": "disabled",
+      "image": ["231", 0]
+    },
+    "class_type": "DF_Image_scale_to_side",
+    "_meta": {
+      "title": "Image scale to side"
+    }
+  },
+  "372": {
+    "inputs": {
+      "filename_prefix": "",
+      "filename_keys": "denoise, fucshia_0.65-1,%F %H-%M-%S",
+      "foldername_prefix": "",
+      "foldername_keys": "ckpt_name, lora_name",
+      "delimiter": "-",
+      "save_job_data": "basic, models, sampler, prompt",
+      "job_data_per_image": false,
+      "job_custom_text": "",
+      "save_metadata": false,
+      "counter_digits": 4,
+      "counter_position": "last",
+      "one_counter_per_folder": true,
+      "image_preview": false,
+      "output_ext": ".jpg",
+      "quality": 90,
+      "named_keys": false,
+      "images": ["418", 0]
+    },
+    "class_type": "SaveImageExtended",
+    "_meta": {
+      "title": "💾 Save Image Extended 2.83"
+    }
+  },
+  "373": {
+    "inputs": {
+      "filename_prefix": "",
+      "filename_keys": "denoise, blue_04-08,%F %H-%M-%S",
+      "foldername_prefix": "",
+      "foldername_keys": "ckpt_name, lora_name",
+      "delimiter": "-",
+      "save_job_data": "basic, models, sampler, prompt",
+      "job_data_per_image": false,
+      "job_custom_text": "",
+      "save_metadata": false,
+      "counter_digits": 4,
+      "counter_position": "last",
+      "one_counter_per_folder": true,
+      "image_preview": false,
+      "output_ext": ".jpg",
+      "quality": 90,
+      "named_keys": false,
+      "images": ["420", 0]
+    },
+    "class_type": "SaveImageExtended",
+    "_meta": {
+      "title": "💾 Save Image Extended 2.83"
+    }
+  },
+  "374": {
+    "inputs": {
+      "images": ["418", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "375": {
+    "inputs": {
+      "images": ["420", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "401": {
+    "inputs": {
+      "preprocessor": "none",
+      "resolution": 1024,
+      "image": ["273", 0]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "403": {
+    "inputs": {
+      "fov": 90,
+      "iterations": 10,
+      "resolution": 1216,
+      "image": ["456", 0]
+    },
+    "class_type": "DSINE-NormalMapPreprocessor",
+    "_meta": {
+      "title": "DSINE Normal Map"
+    }
+  },
+  "404": {
+    "inputs": {
+      "images": ["403", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "407": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "408": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["407", 0],
+      "height": ["407", 1],
+      "crop": "disabled",
+      "image": ["248", 0]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "409": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "410": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["409", 0],
+      "height": ["409", 1],
+      "crop": "disabled"
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "411": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "412": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["411", 0],
+      "height": ["411", 1],
+      "crop": "disabled",
+      "image": ["280", 0]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "413": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "414": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["413", 0],
+      "height": ["413", 1],
+      "crop": "disabled",
+      "image": ["292", 0]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "417": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "418": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["417", 0],
+      "height": ["417", 1],
+      "crop": "disabled",
+      "image": ["346", 0]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "419": {
+    "inputs": {
+      "image": ["226", 0]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "420": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": ["419", 0],
+      "height": ["419", 1],
+      "crop": "disabled",
+      "image": ["349", 0]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "425": {
+    "inputs": {
+      "images": ["273", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "452": {
+    "inputs": {
+      "images": ["231", 0]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "456": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "interpolation": "lanczos",
+      "method": "stretch",
+      "condition": "always",
+      "multiple_of": 4,
+      "image": ["226", 0]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  }
+}

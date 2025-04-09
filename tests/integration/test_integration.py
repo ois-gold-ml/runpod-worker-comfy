@@ -10,6 +10,7 @@ import shutil
 import hashlib
 import logging
 from tusclient import client as tus_client
+import uuid
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -119,31 +120,12 @@ class IntegrationTest(unittest.TestCase):
         src.rp_handler.download_image = mock_download_image
         
         try:
-            # Create a test workflow
-            workflow = {
-                "3": {
-                    "inputs": {
-                        "prompt": "test prompt",
-                        "seed": 42
-                    },
-                    "class_type": "KSampler"
-                },
-                "4": {
-                    "inputs": {
-                        "images": ["3"]
-                    },
-                    "class_type": "SaveImage"
-                }
-            }
             
             logger.info(f"TUS server URL: {self.tus_server.url}")
             # Job with input image and upload URL
             job = {
                 "id": "test-job-with-input",
-                "input": {
-                    "workflow": workflow,
-                    "input": f"{self.http_server.url}/input.jpeg"
-                },
+                "input": f"{self.http_server.url}/input.jpeg", 
                 "output": self.tus_server.url
             }
             
@@ -181,6 +163,20 @@ class IntegrationTest(unittest.TestCase):
                 # Verify the file size
                 self.assertEqual(os.path.getsize(upload_data['path']), len(expected_content),
                                 f"Uploaded file size doesn't match: {os.path.getsize(upload_data['path'])} != {len(expected_content)}")
+            
+            # Verify the workflow JSON that was sent to ComfyUI
+            with open('data/comfy/workflow.json', 'r') as f:
+                actual_workflow = json.load(f)
+                logger.info(f"Actual workflow: {actual_workflow}")
+                image_filename = actual_workflow['prompt']['226']['inputs']['image']
+                self.assertTrue(image_filename.endswith('.png'), f"Image filename {image_filename} does not end with .png")
+                try:
+                    # Try to parse the UUID part of the filename
+                    uuid_part = image_filename.split('.')[0]
+                    uuid.UUID(uuid_part)
+                except ValueError:
+                    self.fail(f"Image filename {image_filename} does not contain a valid UUID")
+                
                 
         finally:
             # Restore the original function

@@ -5,6 +5,7 @@ import urllib.parse
 import time
 import os
 import requests
+import uuid
 from io import BytesIO
 from tusclient import client as tus_client
 
@@ -21,6 +22,30 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+# Path to the workflow JSON file
+WORKFLOW_FILE = os.environ.get("WORKFLOW_FILE", "/workflow.json")
+
+
+def load_workflow():
+    """
+    Load the workflow from the JSON file.
+
+    Returns:
+        tuple: A tuple containing the workflow and an error message, if any.
+               The structure is (workflow, error_message).
+    """
+    try:
+        # List contents of root directory for debugging
+        print("Contents of root directory:")
+        for item in os.listdir('/app/src'):
+            print(f"- {item}")
+            
+        print(f"\nAttempting to load workflow from: {WORKFLOW_FILE}")
+        with open(WORKFLOW_FILE, 'r') as f:
+            workflow = json.load(f)
+        return workflow, None
+    except Exception as e:
+        return None, f"Error loading workflow file: {str(e)}"
 
 
 def validate_input(job_input):
@@ -45,18 +70,18 @@ def validate_input(job_input):
         except json.JSONDecodeError:
             return None, "Invalid JSON format in input"
 
-    # Validate 'workflow' in input
-    workflow = job_input.get("workflow")
-    if workflow is None:
-        return None, "Missing 'workflow' parameter"
-
     # Validate 'input' in input, if provided
     input_url = job_input.get("input")
     if input_url is not None and not isinstance(input_url, str):
         return None, "'input' must be a string containing a presigned URL"
 
+    # Validate 'output' in input
+    output_url = job_input.get("output")
+    if output_url is None or not isinstance(output_url, str):
+        return None, "'output' must be a string containing a presigned URL"
+
     # Return validated data and no error
-    return {"workflow": workflow, "input": input_url}, None
+    return {"input": input_url, "output": output_url}, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -138,7 +163,9 @@ def upload_image_to_comfy(image_data):
     if not image_data:
         return {"status": "error", "message": "No image data provided"}
 
-    filename, binary_data = image_data
+    # Generate a UUID filename
+    filename = f"{uuid.uuid4()}.png"
+    binary_data = image_data[1]  # We only need the binary data, not the original filename
     print(f"runpod-worker-comfy - uploading image: {filename}")
 
     try:
@@ -296,24 +323,18 @@ def handler(job):
     Returns:
         dict: A dictionary containing either an error message or a success status with generated images.
     """
-    job_input = job["input"]
-
-    # Make sure that the input is valid
-    validated_data, error_message = validate_input(job_input)
+    validated_data, error_message = validate_input(job)
     if error_message:
         return {"error": error_message}
 
     # Extract validated data
-    workflow = validated_data["workflow"]
-    input_url = validated_data.get("input")
+    input_url = validated_data["input"]
+    upload_url = validated_data["output"]
 
-    # Check if upload_url is provided in the job
-    upload_url = None
-    # check if job[output] is a valid url:
-    if "output" in job and urllib.parse.urlparse(job["output"]).scheme:
-        upload_url = job["output"]
-    else:
-        return {"error": "No upload URL provided in the job output property"}
+    # Load workflow from file
+    workflow, error_message = load_workflow()
+    if error_message:
+        return {"error": error_message}
 
     # Make sure that the ComfyUI API is available
     check_server(
@@ -331,6 +352,13 @@ def handler(job):
         upload_result = upload_image_to_comfy(result)
         if upload_result["status"] == "error":
             return {"error": upload_result["message"]}
+        
+        # Update the workflow with the new filename
+        # Find the LoadImage node and update its image input
+        for node_id, node_data in workflow.items():
+            if node_data.get("class_type") == "LoadImage":
+                node_data["inputs"]["image"] = upload_result["filename"]
+                break
 
     # Queue the workflow
     try:

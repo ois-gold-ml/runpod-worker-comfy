@@ -15,7 +15,7 @@ logger = logging.getLogger("TUS-Server")
 
 # Store uploaded files
 uploads = {}
-upload_dir = 'uploads'
+upload_dir = 'data/uploads'
 os.makedirs(upload_dir, exist_ok=True)
 
 @app.route('/files', methods=['POST'])
@@ -132,65 +132,6 @@ def upload_chunk(upload_id):
     response.status_code = 204
     return response
 
-@app.route('/files/<upload_id>', methods=['HEAD'])
-def get_upload_status(upload_id):
-    """Get the status of an upload"""
-    # Check for tus resumable header
-    if request.headers.get('Tus-Resumable') != '1.0.0':
-        logger.warning("Invalid or missing Tus-Resumable header in HEAD request")
-        response = jsonify({'error': 'Tus-Resumable header must be 1.0.0'})
-        response.status_code = 412
-        return response
-    
-    if upload_id not in uploads:
-        logger.warning(f"Upload ID not found in HEAD request: {upload_id}")
-        return '', 404
-    
-    upload = uploads[upload_id]
-    
-    response = jsonify({})
-    response.headers['Upload-Offset'] = str(upload['offset'])
-    response.headers['Upload-Length'] = str(upload['size'])
-    response.headers['Tus-Resumable'] = '1.0.0'
-    response.status_code = 200
-    
-    # Add custom header with the original filename for client information
-    response.headers['Upload-Metadata'] = f"filename {base64.b64encode(upload['original_filename'].encode()).decode()}"
-    
-    return response
-
-@app.route('/files/<upload_id>', methods=['GET'])
-def download_file(upload_id):
-    """Allow downloading the file for verification purposes"""
-    if upload_id not in uploads:
-        logger.warning(f"Upload ID not found in GET request: {upload_id}")
-        return jsonify({"error": "File not found"}), 404
-    
-    upload = uploads[upload_id]
-    
-    # Check if the upload is complete
-    if upload['offset'] != upload['size']:
-        return jsonify({"error": "Upload not complete"}), 400
-    
-    return send_file(upload['path'], 
-                     as_attachment=True,
-                     download_name=upload['original_filename'])
-
-@app.route('/files', methods=['GET'])
-def list_uploads():
-    """List all uploads - not part of TUS protocol but useful for testing"""
-    upload_list = []
-    for upload_id, data in uploads.items():
-        upload_list.append({
-            'id': upload_id,
-            'filename': data['original_filename'],
-            'size': data['size'],
-            'offset': data['offset'],
-            'complete': data['offset'] == data['size']
-        })
-    
-    return jsonify(upload_list)
-
 def run_server(host='127.0.0.1', port=1080):
     app.run(host=host, port=port, use_reloader=False)
 
@@ -221,49 +162,18 @@ class TusServer:
         # No clean way to shut down a Flask app in a thread
         # We'll rely on the daemon thread to be killed when the program exits
         logger.info(f"TUS server at {self.url} shutting down")
+        # cleanup files in upload_dir
+        for filename in os.listdir(upload_dir):
+            file_path = os.path.join(upload_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                logger.error(f"Error cleaning up file {file_path}: {str(e)}")
     
     def get_uploads(self):
         """Return the current uploads dictionary for verification"""
         return uploads
-        
-    def get_upload_path(self, upload_id):
-        """Get the path to an uploaded file by ID"""
-        if upload_id in uploads:
-            return uploads[upload_id]['path']
-        return None
-    
-    def verify_upload(self, upload_id, expected_content=None):
-        """Verify that an upload is complete and matches expected content if provided"""
-        if upload_id not in uploads:
-            return False, "Upload ID not found"
-        
-        upload = uploads[upload_id]
-        
-        # Check if upload is complete
-        if upload['offset'] != upload['size']:
-            return False, f"Upload not complete: {upload['offset']}/{upload['size']} bytes"
-        
-        # Verify file exists
-        if not os.path.exists(upload['path']):
-            return False, f"File not found at {upload['path']}"
-        
-        # Verify file size
-        file_size = os.path.getsize(upload['path'])
-        if file_size != upload['size']:
-            return False, f"File size mismatch: {file_size} vs {upload['size']}"
-        
-        # Verify content if provided
-        if expected_content is not None:
-            with open(upload['path'], 'rb') as f:
-                content = f.read()
-                
-            if content != expected_content:
-                # For debugging, calculate hashes
-                expected_hash = hashlib.md5(expected_content).hexdigest()
-                actual_hash = hashlib.md5(content).hexdigest()
-                return False, f"Content mismatch: expected MD5 {expected_hash}, got {actual_hash}"
-        
-        return True, "Upload verified successfully"
 
 if __name__ == '__main__':
     server = TusServer()
