@@ -1,7 +1,6 @@
 {
   "input": {
-    "input": "https://www.candere.com/media/jewellery/images/GR00103__1.jpeg",
-    "workflow": {}
-  },
-  "output": "https://41a7-2800-40-81-9c6-2174-9419-3c8a-d31e.ngrok-free.app/files"
+      "input": "https://www.candere.com/media/jewellery/images/GR00103__1.jpeg",
+      "output": "https://9b46-186-157-105-112.ngrok-free.app/files"
+  }
 }
