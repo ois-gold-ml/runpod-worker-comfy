@@ -35,11 +35,6 @@ def load_workflow():
                The structure is (workflow, error_message).
     """
     try:
-        # List contents of root directory for debugging
-        print("Contents of root directory:")
-        for item in os.listdir('/app/src'):
-            print(f"- {item}")
-            
         print(f"\nAttempting to load workflow from: {WORKFLOW_FILE}")
         with open(WORKFLOW_FILE, 'r') as f:
             workflow = json.load(f)
