@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     libgl1 \
-    libglib2.0-0 \
+    # required for comfyui_controlnet_aux custom node
+    libgl1-mesa-glx libglib2.0-0 -y \
+    && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
 
@@ -33,11 +35,8 @@ RUN /usr/bin/yes | comfy --workspace /comfyui install --cuda-version 11.8 --nvid
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
-# Copy requirements.txt first to leverage Docker cache
-COPY requirements.txt /requirements.txt
-
-# Install all dependencies from requirements.txt
-RUN pip install -r /requirements.txt
+# Install runpod
+RUN pip install runpod requests
 
 # Support for the network volume
 ADD src/extra_model_paths.yaml ./
@@ -46,12 +45,14 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Add scripts
-ADD src/start.sh src/install_custom_nodes.sh src/custom_nodes.txt src/rp_handler.py workflow.json ./
-ADD config.ini /comfyui/user/default/ComfyUI-Manager
-RUN chmod +x /start.sh /install_custom_nodes.sh
+ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json ./
+RUN chmod +x /start.sh /restore_snapshot.sh
 
-# Install custom nodes
-RUN comfy node install comfyui-tensorops save-image-extended-comfyui comfyui-florence2 comfyui-depthanythingv2 comfyui_essentials comfy-easy-grids derfuu_comfyui_moddednodes comfyui_controlnet_aux comfyui-manager comfyui-custom-scripts
+# Optionally copy the snapshot file
+ADD *snapshot*.json /
+
+# Restore the snapshot to install custom nodes
+RUN /restore_snapshot.sh
 
 # Start container
 CMD ["/start.sh"]

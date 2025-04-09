@@ -115,6 +115,8 @@ class IntegrationTest(unittest.TestCase):
         from src.rp_handler import download_image
         # Store the original function
         original_download_image = download_image
+        
+        INPUT_IMAGE_URL = "https://some-site.com/image.png"
         # Replace with our mock
         import src.rp_handler
         src.rp_handler.download_image = mock_download_image
@@ -126,7 +128,7 @@ class IntegrationTest(unittest.TestCase):
             job = {
                 "id": "test-job-with-input",
                 "input": {
-                    "input": f"{self.http_server.url}/input.jpeg", 
+                    "input": INPUT_IMAGE_URL, 
                     "output": self.tus_server.url
                 }
             }
@@ -170,14 +172,8 @@ class IntegrationTest(unittest.TestCase):
             with open('data/comfy/workflow.json', 'r') as f:
                 actual_workflow = json.load(f)
                 logger.info(f"Actual workflow: {actual_workflow}")
-                image_filename = actual_workflow['prompt']['226']['inputs']['image']
-                self.assertTrue(image_filename.endswith('.png'), f"Image filename {image_filename} does not end with .png")
-                try:
-                    # Try to parse the UUID part of the filename
-                    uuid_part = image_filename.split('.')[0]
-                    uuid.UUID(uuid_part)
-                except ValueError:
-                    self.fail(f"Image filename {image_filename} does not contain a valid UUID")
+                image_filename = actual_workflow['prompt']['458']['inputs']['url_or_path']
+                self.assertEqual(image_filename, INPUT_IMAGE_URL, f"Image filename {image_filename} does not match input image URL {INPUT_IMAGE_URL}")
                 
                 
         finally:
