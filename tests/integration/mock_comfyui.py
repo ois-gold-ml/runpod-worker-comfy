@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 import time
 import os
-import uuid
 import threading
-import shutil
 import json
 
 app = Flask(__name__)
@@ -11,9 +9,11 @@ app = Flask(__name__)
 # Store prompts and their "outputs"
 prompts = {}
 output_dir = os.environ.get('COMFY_OUTPUT_PATH', '/comfyui/output')
+test_data_dir = os.environ.get('TEST_DATA_DIR', 'data/comfy')
 
 # Ensure output directory exists
 os.makedirs(output_dir, exist_ok=True)
+os.makedirs(test_data_dir, exist_ok=True)
 
 # For debugging - log the prompts dictionary
 def log_prompts():
@@ -26,6 +26,8 @@ def handle_prompt():
         # Get the JSON data from the request
         data = request.get_json(force=True)
         print(f"ComfyUI Mock Server: Request data: {json.dumps(data)[:200]}...")
+        with open(f'{test_data_dir}/workflow.json', 'w') as f:
+            json.dump(data, f)
         
         # Fixed prompt ID for testing to ensure consistency
         prompt_id = "test-prompt-id"
@@ -116,4 +118,4 @@ def health_check():
     return "OK"
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8188, debug=True, use_reloader=False) 
+    app.run(host='127.0.0.1', port=8188, debug=True, use_reloader=False)

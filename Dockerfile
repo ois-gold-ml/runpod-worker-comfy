@@ -46,7 +46,7 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Add scripts
-ADD src/start.sh src/install_custom_nodes.sh src/custom_nodes.txt src/rp_handler.py test_input.json ./
+ADD src/start.sh src/install_custom_nodes.sh src/custom_nodes.txt src/rp_handler.py workflow.json ./
 RUN chmod +x /start.sh /install_custom_nodes.sh
 
 # Install custom nodes

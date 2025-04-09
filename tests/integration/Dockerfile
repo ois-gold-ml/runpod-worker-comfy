@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt && \
 # Copy project files
 COPY src /app/src
 COPY tests /app/tests
+COPY workflow.json /app/workflow.json
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -29,6 +30,7 @@ ENV COMFY_POLLING_INTERVAL_MS=100
 ENV COMFY_POLLING_MAX_RETRIES=20
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_DEBUG=1
+ENV WORKFLOW_FILE=/app/workflow.json
 
 # Create necessary directories
 RUN mkdir -p /tmp/comfyui_output /app/tests/integration/uploads
