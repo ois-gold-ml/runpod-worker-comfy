@@ -9,5 +9,8 @@ test-integration:
 	cd tests/integration && ./run_docker_tests.sh 
 
 start-fake-tus-server:
-	python tests/integration/mock_tus_server.py & \
-	ngrok http 1080 
+	python tests/integration/mock_tus_server.py
+	
+
+tus-ngrok:
+	ngrok http 1080
