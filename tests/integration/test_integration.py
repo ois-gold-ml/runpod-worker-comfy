@@ -125,8 +125,10 @@ class IntegrationTest(unittest.TestCase):
             # Job with input image and upload URL
             job = {
                 "id": "test-job-with-input",
-                "input": f"{self.http_server.url}/input.jpeg", 
-                "output": self.tus_server.url
+                "input": {
+                    "input": f"{self.http_server.url}/input.jpeg", 
+                    "output": self.tus_server.url
+                }
             }
             
             # Run the handler
