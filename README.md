@@ -14,38 +14,42 @@
 
 <!-- toc -->
 
-- [Quickstart](#quickstart)
-- [Features](#features)
-- [Config](#config)
-  * [Upload image to AWS S3](#upload-image-to-aws-s3)
-- [Use the Docker image on RunPod](#use-the-docker-image-on-runpod)
-  * [Create your template (optional)](#create-your-template-optional)
-  * [Create your endpoint](#create-your-endpoint)
-  * [GPU recommendations](#gpu-recommendations)
-- [API specification](#api-specification)
-  * [JSON Request Body](#json-request-body)
-  * [Fields](#fields)
-    + ["input.images"](#inputimages)
-- [Interact with your RunPod API](#interact-with-your-runpod-api)
-  * [Health status](#health-status)
-  * [Generate an image](#generate-an-image)
-    + [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
-- [How to get the workflow from ComfyUI?](#how-to-get-the-workflow-from-comfyui)
-- [Bring Your Own Models and Nodes](#bring-your-own-models-and-nodes)
-  * [Network Volume](#network-volume)
-  * [Custom Docker Image](#custom-docker-image)
-    + [Adding Custom Models](#adding-custom-models)
-    + [Adding Custom Nodes](#adding-custom-nodes)
-    + [Building the Image](#building-the-image)
-- [Local testing](#local-testing)
-  * [Setup](#setup)
-    + [Setup for Windows](#setup-for-windows)
-  * [Testing the RunPod handler](#testing-the-runpod-handler)
-  * [Local API](#local-api)
-    + [Access the local Worker API](#access-the-local-worker-api)
-    + [Access local ComfyUI](#access-local-comfyui)
-- [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
-- [Acknowledgments](#acknowledgments)
+- [runpod-worker-comfy](#runpod-worker-comfy)
+  - [Quickstart](#quickstart)
+  - [Features](#features)
+  - [Config](#config)
+    - [Upload image to AWS S3](#upload-image-to-aws-s3)
+  - [Use the Docker image on RunPod](#use-the-docker-image-on-runpod)
+    - [Create your template (optional)](#create-your-template-optional)
+    - [Create your endpoint](#create-your-endpoint)
+    - [GPU recommendations](#gpu-recommendations)
+  - [API specification](#api-specification)
+    - [Input Format](#input-format)
+    - [Fields](#fields)
+    - [Example Request](#example-request)
+    - [Response Format](#response-format)
+    - [Workflow Configuration](#workflow-configuration)
+    - [Example Workflow Structure](#example-workflow-structure)
+  - [Interact with your RunPod API](#interact-with-your-runpod-api)
+    - [Health status](#health-status)
+    - [Generate an image](#generate-an-image)
+      - [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
+  - [How to get the workflow from ComfyUI?](#how-to-get-the-workflow-from-comfyui)
+  - [Bring Your Own Models and Nodes](#bring-your-own-models-and-nodes)
+    - [Network Volume](#network-volume)
+    - [Custom Docker Image](#custom-docker-image)
+      - [Adding Custom Models](#adding-custom-models)
+      - [Adding Custom Nodes](#adding-custom-nodes)
+      - [Building the Image](#building-the-image)
+  - [Local testing](#local-testing)
+    - [Setup](#setup)
+      - [Setup for Windows](#setup-for-windows)
+    - [Testing the RunPod handler](#testing-the-runpod-handler)
+    - [Local API](#local-api)
+      - [Access the local Worker API](#access-the-local-worker-api)
+      - [Access local ComfyUI](#access-local-comfyui)
+  - [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
+  - [Acknowledgments](#acknowledgments)
 
 <!-- tocstop -->
 
@@ -65,10 +69,10 @@
 ## Features
 
 - Run any [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflow to generate an image
-- Provide input images as base64-encoded string
-- The generated image is either:
-  - Returned as base64-encoded string (default)
-  - Uploaded to AWS S3 ([if AWS S3 is configured](#upload-image-to-aws-s3))
+- Process images by providing an input URL
+- The generated image is uploaded to the link provided in `output` of the payload using the TUS protocol
+- Support for `DRY_MODE` that bypasses ComfyUI processing for testing and development
+- Configurable workflow file via `WORKFLOW_FILE` environment variable
 - There are a few different Docker images to choose from:
   - `timpietruskyblibla/runpod-worker-comfy:3.6.0-flux1-schnell`: contains the [flux1-schnell.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-schnell) checkpoint, the [clip_l.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors) + [t5xxl_fp8_e4m3fn.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors) text encoders and [ae.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors) VAE for FLUX.1-schnell
   - `timpietruskyblibla/runpod-worker-comfy:3.6.0-flux1-dev`: contains the [flux1-dev.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-dev) checkpoint, the [clip_l.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors) + [t5xxl_fp8_e4m3fn.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors) text encoders and [ae.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors) VAE for FLUX.1-dev
@@ -83,12 +87,14 @@
 
 ## Config
 
-| Environment Variable        | Description                                                                                                                                                                           | Default  |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `REFRESH_WORKER`            | When you want to stop the worker after each finished job to have a clean state, see [official documentation](https://docs.runpod.io/docs/handler-additional-controls#refresh-worker). | `false`  |
-| `COMFY_POLLING_INTERVAL_MS` | Time to wait between poll attempts in milliseconds.                                                                                                                                   | `250`    |
-| `COMFY_POLLING_MAX_RETRIES` | Maximum number of poll attempts. This should be increased the longer your workflow is running.                                                                                        | `500`    |
-| `SERVE_API_LOCALLY`         | Enable local API server for development and testing. See [Local Testing](#local-testing) for more details.                                                                            | disabled |
+| Environment Variable             | Description                                                                                                                                                                           | Default    |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `REFRESH_WORKER`                 | When you want to stop the worker after each finished job to have a clean state, see [official documentation](https://docs.runpod.io/docs/handler-additional-controls#refresh-worker). | `false`    |
+| `COMFY_POLLING_INTERVAL_MS`      | Time to wait between poll attempts in milliseconds.                                                                                                                                   | `250`      |
+| `COMFY_POLLING_MAX_RETRIES`      | Maximum number of poll attempts. This should be increased the longer your workflow is running.                                                                                        | `500`      |
+| `WORKFLOW_FILE`                  | Path to the workflow JSON file that will be used for processing images.                                                                                                               | `/workflow.json` |
+| `DRY_MODE`                       | When enabled, skips ComfyUI processing and just passes through images. Useful for testing.                                                                                            | `false`    |
+| `SERVE_API_LOCALLY`              | Enable local API server for development and testing.                                                                                                                                  | disabled   |
 
 ### Upload image to AWS S3
 
@@ -149,42 +155,80 @@ This is only needed if you want to upload the generated picture to AWS S3. If yo
 
 ## API specification
 
-The following describes which fields exist when doing requests to the API. We only describe the fields that are sent via `input` as those are needed by the worker itself. For a full list of fields, please take a look at the [official documentation](https://docs.runpod.io/docs/serverless-usage).
+### Input Format
 
-### JSON Request Body
+The API expects a JSON request with the following structure:
 
 ```json
 {
   "input": {
-    "workflow": {},
-    "images": [
-      {
-        "name": "example_image_name.png",
-        "image": "base64_encoded_string"
-      }
-    ]
+    "input": "https://example.com/input-image.png",
+    "output": "https://example.com/presigned-upload-url"
   }
 }
 ```
 
 ### Fields
 
-| Field Path       | Type   | Required | Description                                                                                                                               |
-| ---------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `input`          | Object | Yes      | The top-level object containing the request data.                                                                                         |
-| `input.workflow` | Object | Yes      | Contains the ComfyUI workflow configuration.                                                                                              |
-| `input.images`   | Array  | No       | An array of images. Each image will be added into the "input"-folder of ComfyUI and can then be used in the workflow by using it's `name` |
+| Field Path | Type   | Required | Description                                                     |
+|------------|--------|----------|-----------------------------------------------------------------|
+| `input`    | String | Yes      | URL of the input image to be processed                          |
+| `output`   | String | Yes      | TUS protocol compatible URL where the output should be uploaded |
 
-#### "input.images"
+### Example Request
 
-An array of images, where each image should have a different name.
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": {
+      "input": "https://example.com/input-image.png",
+      "output": "https://example.com/presigned-upload-url"
+    }
+  }' \
+  https://api.runpod.ai/v2/<endpoint_id>/runsync
+```
 
-🚨 The request body for a RunPod endpoint is 10 MB for `/run` and 20 MB for `/runsync`, so make sure that your input images are not super huge as this will be blocked by RunPod otherwise, see the [official documentation](https://docs.runpod.io/docs/serverless-endpoint-urls)
+### Response Format
 
-| Field Name | Type   | Required | Description                                                                              |
-| ---------- | ------ | -------- | ---------------------------------------------------------------------------------------- |
-| `name`     | String | Yes      | The name of the image. Please use the same name in your workflow to reference the image. |
-| `image`    | String | Yes      | A base64 encoded string of the image.                                                    |
+```json
+{
+  "delayTime": 2188,
+  "executionTime": 2297,
+  "id": "sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1",
+  "output": {
+    "status": "success",
+    "error": "Optional error message"
+  },
+  "status": "COMPLETED"
+}
+```
+
+### Workflow Configuration
+
+The worker uses a predefined workflow file specified by the `WORKFLOW_FILE` environment variable (default: `/workflow.json`). This workflow should contain a `LoadImageFromUrlOrPath` node that will be automatically updated with the input image URL.
+
+### Example Workflow Structure
+
+```json
+{
+  "3": {
+    "inputs": {
+      "image": "input_image_url_here",
+      "choose file": "upload"
+    },
+    "class_type": "LoadImageFromUrlOrPath"
+  }
+  // ... rest of your workflow nodes
+}
+```
+
+The worker will automatically:
+1. Load this workflow file
+2. Replace the image input URL with the one provided in the API request
+3. Process the image through ComfyUI
+4. Upload the result using the TUS protocol to the specified output URL
 
 ## Interact with your RunPod API
 
