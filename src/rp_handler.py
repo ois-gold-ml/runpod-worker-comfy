@@ -24,6 +24,8 @@ COMFY_HOST = "127.0.0.1:8188"
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
 # Path to the workflow JSON file
 WORKFLOW_FILE = os.environ.get("WORKFLOW_FILE", "/workflow.json")
+# Enable dry mode - skip ComfyUI processing and just pass through images
+DRY_MODE = os.environ.get("DRY_MODE", "false").lower() == "true"
 
 
 def load_workflow(input_url: str):
@@ -306,10 +308,66 @@ def process_output_images(outputs, job_id, upload_url=None):
         }
 
     return {
-        "status": "success",
-        "message": uploaded_urls[0],  # Return the first URL for backward compatibility
-        "all_urls": uploaded_urls,    # Include all URLs in the response
+        "status": "success"
     }
+
+
+def process_dry_mode(input_url, upload_url):
+    """
+    Process the request in dry mode - download input image and upload it directly.
+    Waits 5 seconds before uploading and tracks total processing time.
+
+    Args:
+        input_url (str): URL to download the input image from
+        upload_url (str): URL to upload the image to using TUS protocol
+
+    Returns:
+        dict: A dictionary with status and message
+    """
+    try:
+        # Download the input image
+        success, image_data = download_image(input_url)
+        if not success:
+            return {"status": "error", "message": image_data}  # image_data contains error message
+
+        # Record the start time for tracking
+        start_time = time.time()
+
+        # Create a TUS client
+        my_client = tus_client.TusClient(upload_url)
+        
+        # Save image data to a temporary file
+        temp_filename = f"/tmp/{uuid.uuid4()}.png"
+        with open(temp_filename, 'wb') as f:
+            f.write(image_data[1])
+
+        try:
+            # Wait for 5 seconds before uploading
+            print(f"runpod-worker-comfy [DRY_MODE] - waiting 5 seconds before upload...")
+            time.sleep(5)
+            
+            # Set up the uploader
+            print(f"runpod-worker-comfy [DRY_MODE] - uploading image using TUS protocol to {upload_url}")
+            uploader = my_client.uploader(temp_filename, chunk_size=5*1024*1024)
+            
+            # Upload the file
+            uploader.upload()
+            
+            # Calculate total processing time
+            total_time = time.time() - start_time
+            print(f"runpod-worker-comfy [DRY_MODE] - image uploaded successfully in {total_time:.2f} seconds")
+            
+            return {
+                "status": "success"
+            }
+
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+
+    except Exception as e:
+        return {"status": "error", "message": f"Error in dry mode processing: {str(e)}"}
 
 
 def handler(job):
@@ -332,6 +390,12 @@ def handler(job):
     # Extract validated data
     input_url = validated_data["input"]
     upload_url = validated_data["output"]
+
+    # If in dry mode, skip ComfyUI processing
+    if DRY_MODE:
+        print("runpod-worker-comfy - running in DRY_MODE")
+        result = process_dry_mode(input_url, upload_url)
+        return {**result, "refresh_worker": REFRESH_WORKER}
 
     # Load workflow from file
     workflow, error_message = load_workflow(input_url)
