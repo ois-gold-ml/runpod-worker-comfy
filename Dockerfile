@@ -17,11 +17,16 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     libgl1 \
+    # required for cloning HF repos (florence-2-large-ft)
+    git-lfs \
     # required for comfyui_controlnet_aux custom node
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
+
+# Install git lfs for HF repo downloads
+RUN git lfs install
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -80,6 +85,7 @@ RUN mkdir -p models/checkpoints models/vae models/unet models/clip
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge/dsine.pt https://huggingface.co/hr16/Diffusion-Edge/resolve/main/dsine.pt
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline/MTEED.pth https://huggingface.co/TheMistoAI/MistoLine/resolve/main/Anyline/MTEED.pth
 RUN wget -O /comfyui/models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
+RUN git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/
 
 # Stage 3: Final image
 FROM base as final
