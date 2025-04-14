@@ -85,7 +85,7 @@ RUN mkdir -p models/checkpoints models/vae models/unet models/clip
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge/dsine.pt https://huggingface.co/hr16/Diffusion-Edge/resolve/main/dsine.pt
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline/MTEED.pth https://huggingface.co/TheMistoAI/MistoLine/resolve/main/Anyline/MTEED.pth
 RUN wget -O /comfyui/models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
-RUN git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/
+RUN git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/Florence-2-large-ft
 
 # Stage 3: Final image
 FROM base as final
