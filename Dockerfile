@@ -19,14 +19,11 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     # required for cloning HF repos (florence-2-large-ft)
     git-lfs \
-    # required for comfyui_controlnet_aux custom node
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip
-
-# Install git lfs for HF repo downloads
-RUN git lfs install
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && git lfs install
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
