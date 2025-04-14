@@ -424,6 +424,10 @@ def handler(job):
         while retries < COMFY_POLLING_MAX_RETRIES:
             history = get_history(prompt_id)
 
+            # Log history output every fifth iteration
+            if retries % 5 == 0:
+                print(f"runpod-worker-comfy - polling iteration {retries}, history: {json.dumps(history)}")
+
             # Exit the loop if we have found the history
             if prompt_id in history and history[prompt_id].get("outputs"):
                 break
