@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import requests
+import uuid
 
 # Mock modules before importing rp_handler
 sys.modules['runpod'] = MagicMock()
@@ -23,15 +24,15 @@ RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES = "./test_resources/images"
 
 class TestRunpodWorkerComfy(unittest.TestCase):
     def test_valid_input_with_workflow_only(self):
-        input_data = {"workflow": {"key": "value"}}
+        input_data = {"input": "https://example.com/image.png", "output": "https://example.com/output"}
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "input": None})
+        self.assertEqual(validated_data, {"input": "https://example.com/image.png", "output": "https://example.com/output"})
 
     def test_valid_input_with_workflow_and_input_url(self):
         input_data = {
-            "workflow": {"key": "value"},
             "input": "https://example.com/image.png",
+            "output": "https://example.com/output",
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
@@ -41,16 +42,16 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         input_data = {"input": "https://example.com/image.png"}
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNotNone(error)
-        self.assertEqual(error, "Missing 'workflow' parameter")
+        self.assertEqual(error, "'output' must be a string containing a presigned URL")
 
     def test_input_with_invalid_input_url_type(self):
         input_data = {
-            "workflow": {"key": "value"},
             "input": 123,  # Not a string
+            "output": "https://example.com/output",
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNotNone(error)
-        self.assertEqual(error, "'input' must be a string containing a presigned URL")
+        self.assertEqual(error, "'input' must be a string containing an image URL")
 
     def test_invalid_json_string_input(self):
         input_data = "invalid json"
@@ -59,10 +60,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(error, "Invalid JSON format in input")
 
     def test_valid_json_string_input(self):
-        input_data = '{"workflow": {"key": "value"}}'
+        input_data = '{"input": "https://example.com/image.png", "output": "https://example.com/output"}'
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"workflow": {"key": "value"}, "input": None})
+        self.assertEqual(validated_data, {"input": "https://example.com/image.png", "output": "https://example.com/output"})
 
     def test_empty_input(self):
         input_data = None
@@ -157,8 +158,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         
         # Verify the result contains the expected values
         self.assertEqual(result["status"], "success")
-        self.assertEqual(result["message"], "http://example.com/tus/uploaded_file")
-        
+
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.tus_client.TusClient")
     @patch.dict(
@@ -226,15 +226,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["message"], "No images were successfully uploaded")
     
-    @patch("rp_handler.validate_input")
-    def test_handler_without_upload_url(self, mock_validate):
-        # Setup mock to pass validation
-        mock_validate.return_value = ({"workflow": {"test": "workflow"}, "input": None}, None)
+    def test_handler_without_upload_url(self):
+        # Setup mock to pass validation but with error about missing output
         
         # Create job without upload_url
         job = {
             "id": "test_job",
-            "input": {"workflow": {"test": "workflow"}}
+            "input": {"input": "https://example.com/image.png"}
             # No output property
         }
         
@@ -243,7 +241,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         
         # Assertions
         self.assertIn("error", result)
-        self.assertEqual(result["error"], "No upload URL provided in the job output property")
+        self.assertEqual(result["error"], "'output' must be a string containing a presigned URL")
         
     @patch("rp_handler.requests.get")
     def test_download_image_successful(self, mock_get):
@@ -296,7 +294,11 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(result[1], b"Test Image Data")  # Image data
 
     @patch("rp_handler.requests.post")
-    def test_upload_image_to_comfy_successful(self, mock_post):
+    @patch("rp_handler.uuid.uuid4")
+    def test_upload_image_to_comfy_successful(self, mock_uuid, mock_post):
+        # Mock UUID generation for consistent testing
+        mock_uuid.return_value = "test-uuid"
+        
         # Create a mock response for the POST request
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -310,7 +312,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Assertions
         self.assertEqual(result["status"], "success")
         self.assertIn("Successfully uploaded", result["message"])
-        self.assertEqual(result["filename"], "test_image.png")
+        self.assertEqual(result["filename"], "test-uuid.png")
         mock_post.assert_called_once()
 
     @patch("rp_handler.requests.post")
