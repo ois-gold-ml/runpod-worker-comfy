@@ -95,6 +95,7 @@
 | `WORKFLOW_FILE`                  | Path to the workflow JSON file that will be used for processing images.                                                                                                               | `/workflow.json` |
 | `DRY_MODE`                       | When enabled, skips ComfyUI processing and just passes through images. Useful for testing.                                                                                            | `false`    |
 | `SERVE_API_LOCALLY`              | Enable local API server for development and testing.                                                                                                                                  | disabled   |
+| `LOG_LEVEL`                      | Logging verbosity level. Set to `debug` for detailed logs including ComfyUI history output.                                                                                           | `info`     |
 
 ### Upload image to AWS S3
 

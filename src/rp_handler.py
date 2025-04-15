@@ -9,6 +9,8 @@ import uuid
 from io import BytesIO
 from tusclient import client as tus_client
 
+# Logging level - set to "debug" for verbose logging
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "info").lower()
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
 # Maximum number of API check attempts
@@ -424,8 +426,8 @@ def handler(job):
         while retries < COMFY_POLLING_MAX_RETRIES:
             history = get_history(prompt_id)
 
-            # Log history output every fifth iteration
-            if retries % 5 == 0:
+            # Log history output every fifth iteration only in debug mode
+            if LOG_LEVEL == "debug" and retries % 5 == 0:
                 print(f"runpod-worker-comfy - polling iteration {retries}, history: {json.dumps(history)}")
 
             # Exit the loop if we have found the history
