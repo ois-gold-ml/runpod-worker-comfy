@@ -10,4 +10,4 @@ fi
 TAG=$1
 LATEST_COMMIT_SHA=$(git rev-parse HEAD)
 
-depot build --push . -t fajyz/ois-gold-runpod-worker-comfy:${TAG} --platform linux/amd64 --target=final \
+depot build --push . -t fajyz/ois-gold-comfypack:${TAG} --platform linux/amd64 --target=final \
