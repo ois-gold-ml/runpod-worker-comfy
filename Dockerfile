@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-configured ComfyUI directory
-COPY /comfyui /comfyui
+COPY /ComfyUI /comfyui
 
 # Copy all Python packages from the host system
 COPY /usr/local/lib/python* /usr/local/lib/

@@ -10,4 +10,6 @@ fi
 TAG=$1
 LATEST_COMMIT_SHA=$(git rev-parse HEAD)
 
-depot build --push . -t fajyz/ois-gold-comfypack:${TAG} --platform linux/amd64 --target=final \
+# Change to root directory and use it as build context
+cd /
+depot build --push / -t fajyz/ois-gold-comfypack:${TAG} --platform linux/amd64 --target=final -f /workspace/runpod-worker-comfy/Dockerfile
