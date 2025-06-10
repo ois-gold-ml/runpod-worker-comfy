@@ -58,7 +58,7 @@ jobs:
       - name: Build and push Docker image
         uses: depot/build-push-action@v1
         with:
-          project: 3gznlrx6cs
+          project: 0bk90tk3kr
           context: .
           push: true
           tags: |
