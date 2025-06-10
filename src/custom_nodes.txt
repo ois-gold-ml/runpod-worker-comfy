@@ -4,14 +4,23 @@
 #
 # Check needs to install requirements for all nodes!!!
 
-https://github.com/kijai/ComfyUI-DSINE.git f045e4f98aebfb079c2f7c4bcb3be5bccad734d6
-https://github.com/un-seen/comfyui-tensorops.git d34488e3079ecd10db2fe867c3a7af568115faed
-https://github.com/audioscavenger/save-image-extended-comfyui.git 54b30b9c1a33eb34ff11c2a3a5d7582c5ac46364
-https://github.com/kijai/ComfyUI-Florence2.git 90b012e922f8bb0482bcd2ae24cdc191ec12a11f
-https://github.com/kijai/ComfyUI-DepthAnythingV2.git 003d7b44bafd3a8a4c3693a9ca3ddcd72f4883ab
-https://github.com/cubiq/ComfyUI_essentials.git 33ff89fd354d8ec3ab6affb605a79a931b445d99
-https://github.com/shockz0rz/comfy-easy-grids.git 376a8adf2a86fec214816c26789849c866f25466
-https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git a53ef9b617ed1331640d7a2cd97644995908dc00
-https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes.git d0905bed31249f2bd0814c67585cf4fe3c77c015
-https://github.com/Fannovel16/comfyui_controlnet_aux.git
 https://github.com/ltdrdata/ComfyUI-Manager.git b0daf81185e02c2876066272b0fdcc0333b64eab
+https://github.com/AnastasiyaW/stable_contusion
+https://github.com/AnastasiyaW/happyin
+https://github.com/AnastasiyaW/happyin_canny
+https://github.com/WASasquatch/was-node-suite-comfyui
+https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes
+https://github.com/city96/ComfyUI-GGUF
+https://github.com/pythongosssss/ComfyUI-Custom-Scripts
+https://github.com/TinyTerra/ComfyUI_tinyterraNodes
+https://github.com/ssitu/ComfyUI_UltimateSDUpscale
+https://github.com/rgthree/rgthree-comfy
+https://github.com/cubiq/ComfyUI_essentials
+https://github.com/kijai/ComfyUI-DepthAnythingV2
+https://github.com/kijai/ComfyUI-Florence2
+https://github.com/storyicon/comfyui_segment_anything
+https://github.com/yolain/ComfyUI-Easy-Use
+https://github.com/crystian/ComfyUI-Crystools
+https://github.com/un-seen/comfyui-tensorops
+https://github.com/cardenluo/ComfyUI-Apt_Preset
+https://github.com/AlekPet/ComfyUI_Custom_Nodes_AlekPet
