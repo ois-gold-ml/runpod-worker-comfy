@@ -83,6 +83,7 @@ CMD ["/start.sh"]
 FROM base as downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
+ARG GH_ACCESS_TOKEN
 
 # Fail if no HuggingFace token is provided
 RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
@@ -90,6 +91,17 @@ RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
         echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
         exit 1; \
     fi
+
+# Fail if no GitHub token is provided
+RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
+        echo "ERROR: GH_ACCESS_TOKEN build argument is required but not provided."; \
+        echo "Please provide it using: --build-arg GH_ACCESS_TOKEN=your_token"; \
+        echo "Create a token at: https://github.com/settings/tokens"; \
+        exit 1; \
+    fi
+
+# Configure git to use the token for GitHub authentication
+RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
