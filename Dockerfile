@@ -112,48 +112,51 @@ RUN mkdir -p models/FLUX-checkpoints \
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge/dsine.pt https://huggingface.co/hr16/Diffusion-Edge/resolve/main/dsine.pt
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline/MTEED.pth https://huggingface.co/TheMistoAI/MistoLine/resolve/main/Anyline/MTEED.pth
 
-# Download checkpoints with workflow-expected paths
-RUN wget -O models/FLUX-checkpoints/flux1-schnell-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-schnell/resolve/main/flux1-schnell-fp8.safetensors
+# Download large models in parallel (heaviest first, then medium-sized)
+RUN set -e; \
+    # Start heavy downloads in background (largest files first)
+    wget -O models/unet/flux1-dev-F16.gguf https://huggingface.co/lllyasviel/FLUX.1-dev-gguf/resolve/main/flux1-dev-F16.gguf & \
+    wget -O models/FLUX-checkpoints/flux1-schnell-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-schnell/resolve/main/flux1-schnell-fp8.safetensors & \
+    wget -O models/vae/ae.safetensors "https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors?download=true" & \
+    wget -O models/sams/sam_hq_vit_h.pth https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth & \
+    # Wait for heavy downloads to complete
+    wait
 
-# Download CLIP models with workflow-expected paths
-RUN wget -O models/clip/clip_l.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors?download=true"
-RUN wget -O models/CLIP-GmP-ViT-L-14/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors "https://huggingface.co/zer0int/CLIP-GmP-ViT-L-14/resolve/main/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors?download=true"
-RUN wget -O models/clip/t5xxl_fp16.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors?download=true"
-RUN wget -O models/clip/t5xxl_fp8_e4m3fn.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true"
+# Download CLIP models in parallel
+RUN set -e; \
+    wget -O models/clip/clip_l.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors?download=true" & \
+    wget -O models/clip/t5xxl_fp16.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors?download=true" & \
+    wget -O models/clip/t5xxl_fp8_e4m3fn.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true" & \
+    wget -O models/CLIP-GmP-ViT-L-14/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors "https://huggingface.co/zer0int/CLIP-GmP-ViT-L-14/resolve/main/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors?download=true" & \
+    wait
 
-# Download ControlNet models with workflow-expected paths
-RUN git clone https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro /tmp/controlnet-union && \
+# Download ControlNet models in parallel
+RUN set -e; \
+    # Clone Union Pro in background
+    git clone https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro /tmp/controlnet-union & \
+    # Download other ControlNet models in parallel
+    wget -O models/FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors https://huggingface.co/alimama-creative/FLUX.1-dev-Controlnet-Inpainting-Beta/resolve/main/diffusion_pytorch_model.safetensors & \
+    wget -O models/FLUX.1/flux-canny-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-canny-v3/resolve/main/flux-canny-controlnet-v3.safetensors & \
+    wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-depth-v3/resolve/main/flux-depth-controlnet-v3.safetensors & \
+    # Wait for all ControlNet downloads
+    wait && \
+    # Process Union Pro after clone completes
     mkdir -p models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro && \
     cp /tmp/controlnet-union/diffusion_pytorch_model.safetensors models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors && \
     rm -rf /tmp/controlnet-union
 
-# Download additional ControlNet models referenced in workflow
-# Note: Using XLabs-AI models as they are more reliable
-RUN wget -O models/FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors https://huggingface.co/alimama-creative/FLUX.1-dev-Controlnet-Inpainting-Beta/resolve/main/diffusion_pytorch_model.safetensors
-RUN wget -O models/FLUX.1/flux-canny-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-canny-v3/resolve/main/flux-canny-controlnet-v3.safetensors
-RUN wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-depth-v3/resolve/main/flux-depth-controlnet-v3.safetensors
+# Download remaining models in parallel (smaller files)
+RUN set -e; \
+    wget -O models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors & \
+    wget --header="Authorization: Bearer $HUGGINGFACE_ACCESS_TOKEN" -O "models/loras/big melt/melt_LF_no_g_v1-000018.safetensors" https://huggingface.co/happyin/flux_melt/resolve/main/melt_LF_no_g_v1-000018.safetensors & \
+    wget -O models/upscale_models/4x-UltraSharp.pth https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth & \
+    wait
 
-# Download DepthAnything models
-RUN wget -O models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
-
-# Download LoRA models from private HuggingFace repository (requires token)
-RUN wget --header="Authorization: Bearer $HUGGINGFACE_ACCESS_TOKEN" -O "models/loras/big melt/melt_LF_no_g_v1-000018.safetensors" https://huggingface.co/happyin/flux_melt/resolve/main/melt_LF_no_g_v1-000018.safetensors
-
-# Download SAMs models
-RUN wget -O models/sams/sam_hq_vit_h.pth https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth
-
-# Download UNET models
-RUN wget -O models/unet/flux1-dev-F16.gguf https://huggingface.co/lllyasviel/FLUX.1-dev-gguf/resolve/main/flux1-dev-F16.gguf
-
-# Download LLM models (via git clone for repositories with multiple files)
-RUN git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/Florence-2-large-ft
-RUN git clone https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0 models/LLM/Florence-2-large-PromptGen-v2.0
-
-# Download upscale models
-RUN wget -O models/upscale_models/4x-UltraSharp.pth https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth
-
-# Download VAE models
-RUN wget -O models/vae/ae.safetensors "https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors?download=true"
+# Download LLM models in parallel (large repositories)
+RUN set -e; \
+    git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/Florence-2-large-ft & \
+    git clone https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0 models/LLM/Florence-2-large-PromptGen-v2.0 & \
+    wait
 
 # Clone custom nodes
 RUN cd custom_nodes && \
