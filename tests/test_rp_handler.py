@@ -24,15 +24,20 @@ RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES = "./test_resources/images"
 
 class TestRunpodWorkerComfy(unittest.TestCase):
     def test_valid_input_with_workflow_only(self):
-        input_data = {"input": "https://example.com/image.png", "output": "https://example.com/output"}
+        input_data = {
+            "input": "https://example.com/image.png", 
+            "output": "https://example.com/output",
+            "params": {"tiling": 2, "denoise": "0.4"}
+        }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"input": "https://example.com/image.png", "output": "https://example.com/output"})
+        self.assertEqual(validated_data, input_data)
 
     def test_valid_input_with_workflow_and_input_url(self):
         input_data = {
             "input": "https://example.com/image.png",
             "output": "https://example.com/output",
+            "params": {"tiling": 3, "denoise": "0.6"}
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
@@ -48,6 +53,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         input_data = {
             "input": 123,  # Not a string
             "output": "https://example.com/output",
+            "params": {"tiling": 2, "denoise": "0.4"}
         }
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNotNone(error)
@@ -60,10 +66,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(error, "Invalid JSON format in input")
 
     def test_valid_json_string_input(self):
-        input_data = '{"input": "https://example.com/image.png", "output": "https://example.com/output"}'
+        input_data = '{"input": "https://example.com/image.png", "output": "https://example.com/output", "params": {"tiling": 2, "denoise": "0.4"}}'
         validated_data, error = rp_handler.validate_input(input_data)
         self.assertIsNone(error)
-        self.assertEqual(validated_data, {"input": "https://example.com/image.png", "output": "https://example.com/output"})
+        self.assertEqual(validated_data, {"input": "https://example.com/image.png", "output": "https://example.com/output", "params": {"tiling": 2, "denoise": "0.4"}})
 
     def test_empty_input(self):
         input_data = None
@@ -244,7 +250,8 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(result["error"], "'output' must be a string containing a presigned URL")
         
     @patch("rp_handler.requests.get")
-    def test_download_image_successful(self, mock_get):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_download_image_successful(self, mock_file, mock_get):
         # Create a mock response for the GET request
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -254,13 +261,14 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         # Test URL with a valid filename
         url = "https://example.com/images/test_image.png"
-        success, result = rp_handler.download_image(url)
+        save_path = "/test/path/input.jpg"
+        success, result = rp_handler.download_image(url, save_path)
 
         # Assertions
         self.assertTrue(success)
-        self.assertEqual(result[0], "test_image.png")  # Filename
-        self.assertEqual(result[1], b"Test Image Data")  # Image data
+        self.assertIsNone(result)  # Should return None on success
         mock_get.assert_called_with(url, stream=True)
+        mock_file.assert_called_with(save_path, 'wb')
 
     @patch("rp_handler.requests.get")
     def test_download_image_with_invalid_url(self, mock_get):
@@ -268,7 +276,8 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_get.side_effect = requests.RequestException("Failed to download")
 
         url = "https://example.com/invalid_image.png"
-        success, error_message = rp_handler.download_image(url)
+        save_path = "/test/path/input.jpg"
+        success, error_message = rp_handler.download_image(url, save_path)
 
         # Assertions
         self.assertFalse(success)
@@ -276,7 +285,8 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_get.assert_called_with(url, stream=True)
 
     @patch("rp_handler.requests.get")
-    def test_download_image_with_url_no_filename(self, mock_get):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_download_image_with_url_no_filename(self, mock_file, mock_get):
         # Create a mock response for the GET request
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -286,12 +296,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         # Test URL without a filename
         url = "https://example.com/images/"
-        success, result = rp_handler.download_image(url)
+        save_path = "/test/path/input.jpg"
+        success, result = rp_handler.download_image(url, save_path)
 
         # Assertions
         self.assertTrue(success)
-        self.assertEqual(result[0], "downloaded_image.png")  # Default filename
-        self.assertEqual(result[1], b"Test Image Data")  # Image data
+        self.assertIsNone(result)  # Should return None on success
+        mock_file.assert_called_with(save_path, 'wb')
 
     @patch("rp_handler.requests.post")
     @patch("rp_handler.uuid.uuid4")
@@ -337,3 +348,43 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Assertions
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["message"], "No image data provided")
+
+    def test_valid_input_with_params(self):
+        input_data = {
+            "input": "https://example.com/image.png",
+            "output": "https://example.com/output",
+            "params": {"tiling": 2, "denoise": "0.4"}
+        }
+        validated_data, error = rp_handler.validate_input(input_data)
+        self.assertIsNone(error)
+        self.assertEqual(validated_data, input_data)
+
+    def test_invalid_tiling_param(self):
+        input_data = {
+            "input": "https://example.com/image.png",
+            "output": "https://example.com/output",
+            "params": {"tiling": 6, "denoise": "0.4"}  # Invalid tiling
+        }
+        validated_data, error = rp_handler.validate_input(input_data)
+        self.assertIsNotNone(error)
+        self.assertEqual(error, "'tiling' must be one of [2, 3, 4, 5]")
+
+    def test_invalid_denoise_param(self):
+        input_data = {
+            "input": "https://example.com/image.png",
+            "output": "https://example.com/output",
+            "params": {"tiling": 2, "denoise": "0.8"}  # Invalid denoise
+        }
+        validated_data, error = rp_handler.validate_input(input_data)
+        self.assertIsNotNone(error)
+        self.assertEqual(error, "'denoise' must be either '0.4' or '0.6'")
+
+    def test_missing_params(self):
+        input_data = {
+            "input": "https://example.com/image.png",
+            "output": "https://example.com/output"
+            # Missing params
+        }
+        validated_data, error = rp_handler.validate_input(input_data)
+        self.assertIsNotNone(error)
+        self.assertEqual(error, "'params' must be a dictionary")

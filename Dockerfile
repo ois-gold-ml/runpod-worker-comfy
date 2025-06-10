@@ -64,6 +64,17 @@ RUN /restore_snapshot.sh
 RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge
 RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline
 RUN mkdir -p /comfyui/models/depthanything
+RUN mkdir -p /comfyui/models/FLUX-checkpoints
+RUN mkdir -p /comfyui/models/clip
+RUN mkdir -p /comfyui/models/FLUX.1-dev-Controlnet-Inpainting-Beta
+RUN mkdir -p /comfyui/models/FLUX.1
+RUN mkdir -p "/comfyui/models/loras/big melt"
+RUN mkdir -p /comfyui/models/sams
+RUN mkdir -p /comfyui/models/unet
+RUN mkdir -p /comfyui/models/LLM
+RUN mkdir -p /comfyui/models/upscale_models
+RUN mkdir -p /comfyui/models/vae
+RUN mkdir -p /comfyui/models/CLIP-GmP-ViT-L-14
 
 # Start container
 CMD ["/start.sh"]
@@ -74,15 +85,97 @@ FROM base as downloader
 ARG HUGGINGFACE_ACCESS_TOKEN
 ARG MODEL_TYPE
 
+# Set up HF credentials if provided
+RUN if [ -n "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
+        pip install huggingface_hub && \
+        python -c "from huggingface_hub import login; login('$HUGGINGFACE_ACCESS_TOKEN')"; \
+    fi
+
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
-# Create necessary directories
-RUN mkdir -p models/checkpoints models/vae models/unet models/clip
+# Create necessary directories with exact paths from workflow
+RUN mkdir -p models/FLUX-checkpoints \
+    models/vae \
+    models/unet \
+    models/clip \
+    models/FLUX.1-dev-Controlnet-Inpainting-Beta \
+    models/FLUX.1 \
+    "models/loras/big melt" \
+    models/sams \
+    models/LLM \
+    models/upscale_models \
+    models/depthanything \
+    models/CLIP-GmP-ViT-L-14
+
+# Download existing models (keeping original downloads)
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge/dsine.pt https://huggingface.co/hr16/Diffusion-Edge/resolve/main/dsine.pt
 RUN wget -O /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline/MTEED.pth https://huggingface.co/TheMistoAI/MistoLine/resolve/main/Anyline/MTEED.pth
-RUN wget -O /comfyui/models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
+
+# Download checkpoints with workflow-expected paths
+RUN wget -O models/FLUX-checkpoints/flux1-schnell-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-schnell/resolve/main/flux1-schnell-fp8.safetensors
+
+# Download CLIP models with workflow-expected paths
+RUN wget -O models/clip/clip_l.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors?download=true"
+RUN wget -O models/CLIP-GmP-ViT-L-14/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors "https://huggingface.co/zer0int/CLIP-GmP-ViT-L-14/resolve/main/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors?download=true"
+RUN wget -O models/clip/t5xxl_fp16.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors?download=true"
+RUN wget -O models/clip/t5xxl_fp8_e4m3fn.safetensors "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true"
+
+# Download ControlNet models with workflow-expected paths
+RUN git clone https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro /tmp/controlnet-union && \
+    mkdir -p models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro && \
+    cp /tmp/controlnet-union/diffusion_pytorch_model.safetensors models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors && \
+    rm -rf /tmp/controlnet-union
+
+# Download additional ControlNet models referenced in workflow
+# Note: Using XLabs-AI models as they are more reliable
+RUN wget -O models/FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-inpainting/resolve/main/diffusion_pytorch_model.safetensors
+RUN wget -O models/FLUX.1/flux-canny-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-canny/resolve/main/diffusion_pytorch_model.safetensors
+RUN wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-depth/resolve/main/diffusion_pytorch_model.safetensors
+
+# Download DepthAnything models
+RUN wget -O models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
+
+# Download LoRA models from HuggingFace
+RUN wget -O "models/loras/big melt/melt_LF_no_g_v1-000018.safetensors" https://huggingface.co/happyin/flux_melt/resolve/main/melt_LF_no_g_v1-000018.safetensors
+
+# Download SAMs models
+RUN wget -O models/sams/sam_hq_vit_h.pth https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth
+
+# Download UNET models
+RUN wget -O models/unet/flux1-dev-F16.gguf https://huggingface.co/lllyasviel/FLUX.1-dev-gguf/resolve/main/flux1-dev-F16.gguf
+
+# Download LLM models (via git clone for repositories with multiple files)
 RUN git clone https://huggingface.co/microsoft/Florence-2-large-ft models/LLM/Florence-2-large-ft
+RUN git clone https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0 models/LLM/Florence-2-large-PromptGen-v2.0
+
+# Download upscale models
+RUN wget -O models/upscale_models/4x-UltraSharp.pth https://huggingface.co/lokCX/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth
+
+# Download VAE models
+RUN wget -O models/vae/ae.safetensors "https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors?download=true"
+
+# Clone custom nodes
+RUN cd custom_nodes && \
+    git clone https://github.com/AnastasiyaW/stable_contusion && \
+    git clone https://github.com/AnastasiyaW/happyin && \
+    git clone https://github.com/AnastasiyaW/happyin_canny && \
+    git clone https://github.com/WASasquatch/was-node-suite-comfyui && \
+    git clone https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes && \
+    git clone https://github.com/city96/ComfyUI-GGUF && \
+    git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts && \
+    git clone https://github.com/TinyTerra/ComfyUI_tinyterraNodes && \
+    git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale && \
+    git clone https://github.com/rgthree/rgthree-comfy && \
+    git clone https://github.com/cubiq/ComfyUI_essentials && \
+    git clone https://github.com/kijai/ComfyUI-DepthAnythingV2 && \
+    git clone https://github.com/kijai/ComfyUI-Florence2 && \
+    git clone https://github.com/storyicon/comfyui_segment_anything && \
+    git clone https://github.com/yolain/ComfyUI-Easy-Use && \
+    git clone https://github.com/crystian/ComfyUI-Crystools && \
+    git clone https://github.com/un-seen/comfyui-tensorops && \
+    git clone https://github.com/cardenluo/ComfyUI-Apt_Preset && \
+    git clone https://github.com/AlekPet/ComfyUI_Custom_Nodes_AlekPet
 
 # Stage 3: Final image
 FROM base as final

@@ -25,10 +25,15 @@ from mock_http_server import MockHTTPServer
 
 # Mock function for downloading images
 # We need this because the mock HTTP server doesn't really serve the files properly
-def mock_download_image(url):
-    logger.info(f"Mock download_image called with URL: {url}")
-    # Always return success with a dummy image
-    return True, ("dummy_image.png", b"dummy image content")
+def mock_download_image(url, save_path):
+    logger.info(f"Mock download_image called with URL: {url} and save_path: {save_path}")
+    # Always return success and save dummy content to the file
+    try:
+        with open(save_path, 'wb') as f:
+            f.write(b"dummy image content")
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 class IntegrationTest(unittest.TestCase):
     @classmethod
@@ -129,7 +134,8 @@ class IntegrationTest(unittest.TestCase):
                 "id": "test-job-with-input",
                 "input": {
                     "input": INPUT_IMAGE_URL, 
-                    "output": self.tus_server.url
+                    "output": self.tus_server.url,
+                    "params": {"tiling": 2, "denoise": "0.4"}
                 }
             }
             
@@ -169,13 +175,30 @@ class IntegrationTest(unittest.TestCase):
                                 f"Uploaded file size doesn't match: {os.path.getsize(upload_data['path'])} != {len(expected_content)}")
             
             # Verify the workflow JSON that was sent to ComfyUI
+            # The mock ComfyUI server saves the received workflow to this file
             with open('data/comfy/workflow.json', 'r') as f:
-                actual_workflow = json.load(f)
-                logger.info(f"Actual workflow: {actual_workflow}")
-                image_filename = actual_workflow['prompt']['458']['inputs']['url_or_path']
-                self.assertEqual(image_filename, INPUT_IMAGE_URL, f"Image filename {image_filename} does not match input image URL {INPUT_IMAGE_URL}")
+                workflow_data = json.load(f)
+                actual_workflow = workflow_data['prompt']
                 
-                
+                # Debug: print the available node IDs to understand the structure
+                if 'nodes' in actual_workflow:
+                    node_ids = [str(node['id']) for node in actual_workflow['nodes']]
+                    print(f"DEBUG: Available node IDs: {node_ids[:10]}...")  # Show first 10
+                    
+                    # Look for the StableContusionImageLoader node specifically
+                    for node in actual_workflow['nodes']:
+                        if node.get('type') == 'StableContusionImageLoader':
+                            print(f"DEBUG: Found StableContusionImageLoader with ID: {node['id']}")
+                            print(f"DEBUG: Widget values: {node.get('widgets_values', [])}")
+                            # Use the actual ID found
+                            self.assertEqual(node['widgets_values'][0], 'input.jpg')
+                            break
+                    else:
+                        self.fail("StableContusionImageLoader node not found in workflow")
+                else:
+                    print(f"DEBUG: Workflow structure keys: {list(actual_workflow.keys())}")
+                    self.fail("No 'nodes' key found in workflow")
+            
         finally:
             # Restore the original function
             src.rp_handler.download_image = original_download_image
