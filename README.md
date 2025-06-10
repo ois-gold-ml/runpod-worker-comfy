@@ -164,7 +164,8 @@ The API expects a JSON request with the following structure:
 {
   "input": {
     "input": "https://example.com/input-image.png",
-    "output": "https://example.com/presigned-upload-url"
+    "output": "https://example.com/presigned-upload-url",
+    "params": {"tiling": 2, "denoise": "0.4"}
   }
 }
 ```
@@ -175,6 +176,7 @@ The API expects a JSON request with the following structure:
 |------------|--------|----------|-----------------------------------------------------------------|
 | `input`    | String | Yes      | URL of the input image to be processed                          |
 | `output`   | String | Yes      | TUS protocol compatible URL where the output should be uploaded |
+| `params`   | Object | Yes      | Parameters for workflow selection, including `tiling` and `denoise` |
 
 ### Example Request
 
@@ -185,7 +187,8 @@ curl -X POST \
   -d '{
     "input": {
       "input": "https://example.com/input-image.png",
-      "output": "https://example.com/presigned-upload-url"
+      "output": "https://example.com/presigned-upload-url",
+      "params": {"tiling": 2, "denoise": "0.4"}
     }
   }' \
   https://api.runpod.ai/v2/<endpoint_id>/runsync
@@ -209,6 +212,8 @@ curl -X POST \
 ### Workflow Configuration
 
 The worker uses a predefined workflow file specified by the `WORKFLOW_FILE` environment variable (default: `/workflow.json`). This workflow should contain a `LoadImageFromUrlOrPath` node that will be automatically updated with the input image URL.
+
+The appropriate workflow is selected based on the `params` field in the input JSON, which determines the tiling and denoise settings.
 
 ### Example Workflow Structure
 

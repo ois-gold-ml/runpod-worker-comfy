@@ -86,8 +86,22 @@ def validate_input(job_input):
     if output_url is None or not isinstance(output_url, str):
         return None, "'output' must be a string containing a presigned URL"
 
+    # Validate 'params' in input
+    params = job_input.get("params")
+    if not isinstance(params, dict):
+        return None, "'params' must be a dictionary"
+
+    tiling = params.get("tiling")
+    denoise = params.get("denoise")
+
+    if tiling not in [2, 3, 4, 5]:
+        return None, "'tiling' must be one of [2, 3, 4, 5]"
+
+    if denoise not in ["0.4", "0.6"]:
+        return None, "'denoise' must be either '0.4' or '0.6'"
+
     # Return validated data and no error
-    return {"input": input_url, "output": output_url}, None
+    return {"input": input_url, "output": output_url, "params": params}, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -124,12 +138,13 @@ def check_server(url, retries=500, delay=50):
     return False
 
 
-def download_image(url):
+def download_image(url, save_path):
     """
-    Download an image from a presigned URL.
+    Download an image from a presigned URL and save it to a specified path.
 
     Args:
         url (str): The presigned URL to download the image from.
+        save_path (str): The path to save the downloaded image.
 
     Returns:
         tuple: A tuple containing (success_flag, data_or_error_message).
@@ -140,16 +155,12 @@ def download_image(url):
         print(f"runpod-worker-comfy - downloading image from {url}")
         response = requests.get(url, stream=True)
         response.raise_for_status()  # Raise an exception for HTTP errors
-        
-        # Extract filename from URL or use a default name
-        try:
-            filename = os.path.basename(urllib.parse.urlparse(url).path)
-            if not filename or '.' not in filename:
-                filename = "downloaded_image.png"
-        except:
-            filename = "downloaded_image.png"
-            
-        return True, (filename, response.content)
+
+        # Save the image to the specified path
+        with open(save_path, 'wb') as f:
+            f.write(response.content)
+
+        return True, None
     except requests.RequestException as e:
         error_message = f"Error downloading image: {str(e)}"
         print(f"runpod-worker-comfy - {error_message}")
@@ -327,21 +338,19 @@ def process_dry_mode(input_url, upload_url):
         dict: A dictionary with status and message
     """
     try:
+        # Create a temporary file for the image
+        temp_filename = f"/tmp/{uuid.uuid4()}.png"
+        
         # Download the input image
-        success, image_data = download_image(input_url)
+        success, error_message = download_image(input_url, temp_filename)
         if not success:
-            return {"status": "error", "message": image_data}  # image_data contains error message
+            return {"status": "error", "message": error_message}
 
         # Record the start time for tracking
         start_time = time.time()
 
         # Create a TUS client
         my_client = tus_client.TusClient(upload_url)
-        
-        # Save image data to a temporary file
-        temp_filename = f"/tmp/{uuid.uuid4()}.png"
-        with open(temp_filename, 'wb') as f:
-            f.write(image_data[1])
 
         try:
             # Wait for 5 seconds before uploading
@@ -392,6 +401,7 @@ def handler(job):
     # Extract validated data
     input_url = validated_data["input"]
     upload_url = validated_data["output"]
+    params = validated_data["params"]
 
     # If in dry mode, skip ComfyUI processing
     if DRY_MODE:
@@ -399,10 +409,21 @@ def handler(job):
         result = process_dry_mode(input_url, upload_url)
         return {**result, "refresh_worker": REFRESH_WORKER}
 
-    # Load workflow from file
-    workflow, error_message = load_workflow(input_url)
-    if error_message:
+    # Download the input image
+    success, error_message = download_image(input_url, "/ComfyUI/input/input.jpg")
+    if not success:
         return {"error": error_message}
+
+    # Load workflow from file based on params
+    workflow_file_path = f"workflows/{params['tiling']}_{params['denoise']}/workflow.json"
+    # Make the path absolute relative to the script directory
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    workflow_file_path = os.path.join(script_dir, workflow_file_path)
+    try:
+        with open(workflow_file_path, 'r') as f:
+            workflow = json.load(f)
+    except Exception as e:
+        return {"error": f"Error loading workflow file: {str(e)}"}
 
     # Make sure that the ComfyUI API is available
     check_server(
