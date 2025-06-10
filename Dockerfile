@@ -83,12 +83,12 @@ CMD ["/start.sh"]
 FROM base as downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
-ARG MODEL_TYPE
 
-# Set up HF credentials if provided
-RUN if [ -n "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
-        pip install huggingface_hub && \
-        python -c "from huggingface_hub import login; login('$HUGGINGFACE_ACCESS_TOKEN')"; \
+# Fail if no HuggingFace token is provided
+RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
+        echo "ERROR: HUGGINGFACE_ACCESS_TOKEN build argument is required but not provided."; \
+        echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
+        exit 1; \
     fi
 
 # Change working directory to ComfyUI
@@ -136,8 +136,8 @@ RUN wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingfa
 # Download DepthAnything models
 RUN wget -O models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
 
-# Download LoRA models from HuggingFace
-RUN wget -O "models/loras/big melt/melt_LF_no_g_v1-000018.safetensors" https://huggingface.co/happyin/flux_melt/resolve/main/melt_LF_no_g_v1-000018.safetensors
+# Download LoRA models from private HuggingFace repository (requires token)
+RUN wget --header="Authorization: Bearer $HUGGINGFACE_ACCESS_TOKEN" -O "models/loras/big melt/melt_LF_no_g_v1-000018.safetensors" https://huggingface.co/happyin/flux_melt/resolve/main/melt_LF_no_g_v1-000018.safetensors
 
 # Download SAMs models
 RUN wget -O models/sams/sam_hq_vit_h.pth https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth
