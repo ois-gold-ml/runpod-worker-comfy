@@ -129,9 +129,9 @@ RUN git clone https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pr
 
 # Download additional ControlNet models referenced in workflow
 # Note: Using XLabs-AI models as they are more reliable
-RUN wget -O models/FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-inpainting/resolve/main/diffusion_pytorch_model.safetensors
-RUN wget -O models/FLUX.1/flux-canny-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-canny/resolve/main/diffusion_pytorch_model.safetensors
-RUN wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-depth/resolve/main/diffusion_pytorch_model.safetensors
+RUN wget -O models/FLUX.1-dev-Controlnet-Inpainting-Beta/diffusion_pytorch_model.safetensors https://huggingface.co/alimama-creative/FLUX.1-dev-Controlnet-Inpainting-Beta/resolve/main/diffusion_pytorch_model.safetensors
+RUN wget -O models/FLUX.1/flux-canny-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-canny-v3/resolve/main/flux-canny-controlnet-v3.safetensors
+RUN wget -O models/FLUX.1/flux-depth-controlnet-v3.safetensors https://huggingface.co/XLabs-AI/flux-controlnet-depth-v3/resolve/main/flux-depth-controlnet-v3.safetensors
 
 # Download DepthAnything models
 RUN wget -O models/depthanything/depth_anything_v2_vitl_fp32.safetensors https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors
