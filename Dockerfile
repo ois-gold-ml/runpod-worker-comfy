@@ -34,16 +34,11 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git \
     wget \
-    # required for downloading models
-    aria2 \
     libgl1 \
-    # required for cloning HF repos (florence-2-large-ft)
-    git-lfs \
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3.11 /usr/bin/python \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip \
-    && git lfs install
+    && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -112,7 +107,10 @@ RUN pip3 install torch torchvision torchaudio xformers --index-url https://downl
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
+
+# required for ComfyUI-Apt_Preset
+RUN pip3 install --upgrade pip setuptools wheel watchdog
 
 # Copy file structure from test stage
 COPY --from=file-operations-test /comfyui/ /comfyui/
