@@ -45,8 +45,9 @@ RUN apt-get update && apt-get install -y \
     && ln -sf /usr/bin/pip3 /usr/bin/pip \
     && git lfs install
 
-# Clean up to reduce image size
-RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+# Remove Python 3.10 to avoid conflicts
+RUN apt-get update && apt-get remove -y python3.10 python3.10-minimal libpython3.10-minimal libpython3.10-stdlib \
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install ComfyUI
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
