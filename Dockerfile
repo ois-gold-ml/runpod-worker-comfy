@@ -1,5 +1,23 @@
-# Stage 1: Base image with common dependencies
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 as base
+# Stage 1: Test base (for testing file operations only)
+FROM ubuntu:22.04 as test-base
+
+# Prevents prompts from packages asking for user input during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install minimal dependencies for testing file operations
+RUN apt-get update && apt-get install -y \
+    python3 \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/python3 /usr/bin/python
+
+# Create a mock ComfyUI directory structure
+RUN mkdir -p /comfyui
+WORKDIR /comfyui
+
+# Stage 2: Production base with CUDA dependencies
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 as prod-base
 
 # Prevents prompts from packages asking for user input during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -39,6 +57,55 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
+# Stage 3: File operations (shared between test and production)
+FROM test-base as file-operations-test
+
+# Create necessary directories for controlnet aux
+RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge
+RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline
+
+# Support for the network volume
+COPY src/extra_model_paths.yaml ./
+
+# Create workflows directory
+RUN mkdir -p /workflows
+
+# Copy workflow files with directory structure preserved
+COPY workflows/ /workflows/
+
+# Add scripts
+COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json /
+RUN chmod +x /start.sh /restore_snapshot.sh
+
+# Copy and test custom nodes installation script
+COPY src/install_custom_nodes.sh /install_custom_nodes.sh
+COPY src/custom_nodes.txt /custom_nodes.txt
+RUN chmod +x /install_custom_nodes.sh
+
+# Test validation command - will fail if any of the expected files/directories don't exist
+RUN echo "Running file structure validation tests..." && \
+    test -d /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge && \
+    test -d /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline && \
+    test -f /comfyui/extra_model_paths.yaml && \
+    test -d /workflows && \
+    test -f /workflows/2_0.4/workflow.json && \
+    test -f /workflows/2_0.6/workflow.json && \
+    test -f /workflows/3_0.4/workflow.json && \
+    test -f /workflows/3_0.6/workflow.json && \
+    test -f /workflows/4_0.4/workflow.json && \
+    test -f /workflows/4_0.6/workflow.json && \
+    test -f /workflows/5_0.4/workflow.json && \
+    test -f /workflows/5_0.6/workflow.json && \
+    test -f /start.sh && test -x /start.sh && \
+    test -f /restore_snapshot.sh && test -x /restore_snapshot.sh && \
+    test -f /install_custom_nodes.sh && test -x /install_custom_nodes.sh && \
+    test -f /rp_handler.py && \
+    test -f /test_input.json && \
+    echo "All file structure tests passed!"
+
+# Stage 4: Production build with dependencies
+FROM prod-base as production
+
 # Install ComfyUI dependencies
 RUN pip3 install torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu126 \
     && pip3 install --upgrade -r requirements.txt
@@ -47,46 +114,16 @@ RUN pip3 install torch torchvision torchaudio xformers --index-url https://downl
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Support for the network volume
-ADD src/extra_model_paths.yaml ./
+# Copy file structure from test stage
+COPY --from=file-operations-test /comfyui/ /comfyui/
+COPY --from=file-operations-test /workflows/ /workflows/
+COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /custom_nodes.txt /rp_handler.py /test_input.json /
 
-# Go back to the root
-WORKDIR /
+# Run custom nodes installation script
+RUN /install_custom_nodes.sh
 
-# Add scripts
-ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json workflows/ ./
-RUN chmod +x /start.sh /restore_snapshot.sh
-
-# Restore the snapshot to install custom nodes
-# ADD *snapshot*.json /
-# RUN /restore_snapshot.sh
-
-# Create necessary directories for downloaded models
-RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge
-RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline
-RUN mkdir -p /comfyui/models/depthanything
-RUN mkdir -p /comfyui/models/FLUX-checkpoints
-RUN mkdir -p /comfyui/models/clip
-RUN mkdir -p /comfyui/models/FLUX.1-dev-Controlnet-Inpainting-Beta
-RUN mkdir -p /comfyui/models/FLUX.1
-RUN mkdir -p "/comfyui/models/loras/big melt"
-RUN mkdir -p /comfyui/models/sams
-RUN mkdir -p /comfyui/models/unet
-RUN mkdir -p /comfyui/models/LLM
-RUN mkdir -p /comfyui/models/upscale_models
-RUN mkdir -p /comfyui/models/vae
-RUN mkdir -p /comfyui/models/CLIP-GmP-ViT-L-14
-
-# Copy and run custom nodes installation script in base stage
-COPY src/install_custom_nodes.sh /install_custom_nodes.sh
-COPY src/custom_nodes.txt /custom_nodes.txt
-RUN chmod +x /install_custom_nodes.sh && /install_custom_nodes.sh
-
-# Start container
-CMD ["/start.sh"]
-
-# Stage 2: Download models
-FROM base as downloader
+# Stage 5: Download models (optional)
+FROM production as downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
 ARG GH_ACCESS_TOKEN
@@ -109,32 +146,10 @@ RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
 # Configure git to use the token for GitHub authentication
 RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
-# Change working directory to ComfyUI
-WORKDIR /comfyui
-
-# Create necessary directories with exact paths from workflow
-# RUN mkdir -p models/FLUX-checkpoints \
-#     models/vae \
-#     models/unet \
-#     models/clip \
-#     models/FLUX.1-dev-Controlnet-Inpainting-Beta \
-#     models/FLUX.1 \
-#     "models/loras/big melt" \
-#     models/sams \
-#     models/LLM \
-#     models/upscale_models \
-#     models/depthanything \
-#     models/CLIP-GmP-ViT-L-14
-
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
 # RUN chmod +x /download_models.sh && /download_models.sh
 
-# Stage 3: Final image
-FROM base as final
-
-# Copy models from downloader stage
-# COPY --from=downloader /comfyui/models /comfyui/models
-
-# Start container
+# Final stage
+FROM production as final
 CMD ["/start.sh"]
