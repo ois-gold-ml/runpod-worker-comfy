@@ -24,34 +24,8 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
-# Path to the workflow JSON file
-WORKFLOW_FILE = os.environ.get("WORKFLOW_FILE", "/workflow.json")
 # Enable dry mode - skip ComfyUI processing and just pass through images
 DRY_MODE = os.environ.get("DRY_MODE", "false").lower() == "true"
-
-
-def load_workflow(input_url: str):
-    """
-    Load the workflow from the JSON file.
-
-    Returns:
-        tuple: A tuple containing the workflow and an error message, if any.
-               The structure is (workflow, error_message).
-    """
-    try:
-        print(f"\nAttempting to load workflow from: {WORKFLOW_FILE}")
-        with open(WORKFLOW_FILE, 'r') as f:
-            workflow = json.load(f)
-            
-        # Update the workflow with the new filename
-        # Find the LoadImageFromUrlOrPath node and update its image input
-        for node_id, node_data in workflow.items():
-            if node_data.get("class_type") == "LoadImageFromUrlOrPath":
-                node_data["inputs"]["url_or_path"] = input_url
-                break
-        return workflow, None
-    except Exception as e:
-        return None, f"Error loading workflow file: {str(e)}"
 
 
 def validate_input(job_input):
@@ -410,7 +384,7 @@ def handler(job):
         return {**result, "refresh_worker": REFRESH_WORKER}
 
     # Download the input image
-    success, error_message = download_image(input_url, "/ComfyUI/input/input.jpg")
+    success, error_message = download_image(input_url, "/comfyui/input/input.jpg")
     if not success:
         return {"error": error_message}
 

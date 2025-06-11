@@ -34,7 +34,7 @@ ENV FLASK_DEBUG=1
 ENV WORKFLOW_FILE=/app/workflow.json
 
 # Create necessary directories
-RUN mkdir -p /tmp/comfyui_output /app/tests/integration/uploads /ComfyUI/input
+RUN mkdir -p /tmp/comfyui_output /app/tests/integration/uploads /comfyui/input
 
 # Set working directory for tests
 WORKDIR /app/tests/integration
