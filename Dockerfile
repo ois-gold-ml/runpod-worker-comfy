@@ -30,10 +30,6 @@ RUN apt-get update && apt-get install -y \
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
 # Install ComfyUI
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
     cd /comfyui && \
@@ -43,8 +39,13 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
-# Install runpod
-RUN pip install runpod requests
+# Install ComfyUI dependencies
+RUN pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126 \
+    && pip3 install --upgrade -r requirements.txt
+
+# Copy requirements.txt and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 # Support for the network volume
 ADD src/extra_model_paths.yaml ./
@@ -53,13 +54,12 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Add scripts
-ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json workflow.json ./
+ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json ./
+ADD workflows/ src/workflows/
 RUN chmod +x /start.sh /restore_snapshot.sh
 
-# Optionally copy the snapshot file
-ADD *snapshot*.json /
-
 # Restore the snapshot to install custom nodes
+# ADD *snapshot*.json /
 # RUN /restore_snapshot.sh
 
 # Create necessary directories for downloaded models
