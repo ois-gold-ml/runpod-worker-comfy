@@ -46,19 +46,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set up Depot
-        uses: depot/setup-action@v1
+      # Temporarily disabled Depot - using GitHub's buildx instead
+      # - name: Set up Depot
+      #   uses: depot/setup-action@v1
 
       - name: Build and push Docker image
-        uses: depot/build-push-action@v1
+        uses: docker/build-push-action@v4
         with:
-          project: 0bk90tk3kr
+          # project: 0bk90tk3kr  # Depot project ID - disabled
           context: .
           push: true
           tags: |
