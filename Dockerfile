@@ -54,8 +54,7 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Add scripts
-ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json ./
-ADD workflows/ src/workflows/
+ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json workflows/ ./
 RUN chmod +x /start.sh /restore_snapshot.sh
 
 # Restore the snapshot to install custom nodes
