@@ -30,7 +30,7 @@ ENV CMAKE_BUILD_PARALLEL_LEVEL=8
 
 # Install Python, git and other necessary tools including aria2 for fast downloads
 RUN apt-get update && apt-get install -y \
-    python3.13 \
+    python3.12 \
     python3-pip \
     git \
     wget \
@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
     git-lfs \
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
-    && ln -sf /usr/bin/python3.13 /usr/bin/python \
+    && ln -sf /usr/bin/python3.12 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip \
     && git lfs install
 
