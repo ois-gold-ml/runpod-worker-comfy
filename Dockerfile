@@ -60,7 +60,7 @@ RUN chmod +x /start.sh /restore_snapshot.sh
 ADD *snapshot*.json /
 
 # Restore the snapshot to install custom nodes
-RUN /restore_snapshot.sh
+# RUN /restore_snapshot.sh
 
 # Create necessary directories for downloaded models
 RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge
