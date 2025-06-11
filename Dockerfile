@@ -17,7 +17,7 @@ RUN mkdir -p /comfyui
 WORKDIR /comfyui
 
 # Stage 2: Production base with CUDA dependencies
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 as prod-base
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04 as prod-base
 
 # Prevents prompts from packages asking for user input during installation
 ENV DEBIAN_FRONTEND=noninteractive
