@@ -34,11 +34,11 @@ RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Install comfy-cli
-RUN pip install comfy-cli
-
 # Install ComfyUI
-RUN /usr/bin/yes | comfy --workspace /comfyui install --cuda-version 11.8 --nvidia --version 0.3.26
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
+    cd /comfyui && \
+    # v0.3.40
+    git checkout 866f6cd
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
@@ -114,18 +114,18 @@ RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "
 WORKDIR /comfyui
 
 # Create necessary directories with exact paths from workflow
-RUN mkdir -p models/FLUX-checkpoints \
-    models/vae \
-    models/unet \
-    models/clip \
-    models/FLUX.1-dev-Controlnet-Inpainting-Beta \
-    models/FLUX.1 \
-    "models/loras/big melt" \
-    models/sams \
-    models/LLM \
-    models/upscale_models \
-    models/depthanything \
-    models/CLIP-GmP-ViT-L-14
+# RUN mkdir -p models/FLUX-checkpoints \
+#     models/vae \
+#     models/unet \
+#     models/clip \
+#     models/FLUX.1-dev-Controlnet-Inpainting-Beta \
+#     models/FLUX.1 \
+#     "models/loras/big melt" \
+#     models/sams \
+#     models/LLM \
+#     models/upscale_models \
+#     models/depthanything \
+#     models/CLIP-GmP-ViT-L-14
 
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
