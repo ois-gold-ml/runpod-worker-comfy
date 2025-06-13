@@ -22,12 +22,6 @@
       "do_sample": true,
       "output_mask_select": "",
       "seed": 444783528638671,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "image": [
         "2499",
         0
@@ -44,9 +38,9 @@
   },
   "1793": {
     "inputs": {
-      "lora_name": "big melt\\melt_LF_no_g_v1-000018.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
+      "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "1809",
         0
@@ -81,13 +75,7 @@
   },
   "1804": {
     "inputs": {
-      "text": "melt ",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      "text": "melt "
     },
     "class_type": "ttN text",
     "_meta": {
@@ -96,7 +84,7 @@
   },
   "1809": {
     "inputs": {
-      "ckpt_name": "FLUX-checkpoints\\flux1-schnell-fp8.safetensors"
+      "ckpt_name": "FLUX-checkpoints/flux1-schnell-fp8.safetensors"
     },
     "class_type": "CheckpointLoaderSimple",
     "_meta": {
@@ -105,7 +93,7 @@
   },
   "1811": {
     "inputs": {
-      "clip_name1": "CLIP-GmP-ViT-L-14\\ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
+      "clip_name1": "CLIP-GmP-ViT-L-14/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
       "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
       "type": "flux",
       "device": "default"
@@ -117,7 +105,7 @@
   },
   "1827": {
     "inputs": {
-      "float": 2
+      "float": 2.0000000000000004
     },
     "class_type": "Primitive float [Crystools]",
     "_meta": {
@@ -253,9 +241,9 @@
   },
   "2603": {
     "inputs": {
-      "lora_name": "big melt\\melt_LF_no_g_v1-000018.safetensors",
+      "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1.0000000000000002,
-      "strength_clip": 1,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "2745",
         0
@@ -351,12 +339,6 @@
   "2632": {
     "inputs": {
       "text": "blurry, dust",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "1811",
         0
@@ -455,12 +437,6 @@
   "2644": {
     "inputs": {
       "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "a": [
         "2649",
         0
@@ -478,12 +454,6 @@
   "2645": {
     "inputs": {
       "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "a": [
         "2649",
         0
@@ -550,12 +520,6 @@
   "2667": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         0
@@ -569,12 +533,6 @@
   "2668": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         1
@@ -644,7 +602,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -688,12 +646,6 @@
         0
       ],
       "guidance": 3.5,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -707,12 +659,6 @@
   "2712": {
     "inputs": {
       "text": "blurry, dust, scratched",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -835,7 +781,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -886,7 +832,7 @@
   },
   "2745": {
     "inputs": {
-      "unet_name": "FLUX.1-dev-gguf\\flux1-dev-F16.gguf"
+      "unet_name": "flux1-dev-F16.gguf"
     },
     "class_type": "UnetLoaderGGUF",
     "_meta": {
@@ -934,7 +880,6 @@
   },
   "2760": {
     "inputs": {
-      "text": "696",
       "anything": [
         "2758",
         0
@@ -978,7 +923,7 @@
   },
   "2763": {
     "inputs": {
-      "control_net_name": "FLUX.1\\Shakker-Labs-ControlNet-Union-Pro\\diffusion_pytorch_model.safetensors",
+      "control_net_name": "FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors",
       "model": [
         "1809",
         0
@@ -1038,7 +983,6 @@
   },
   "2807": {
     "inputs": {
-      "text": "912",
       "anything": [
         "2758",
         1
@@ -1144,22 +1088,15 @@
   },
   "2821": {
     "inputs": {
-      "confidence_threshold": 0.2,
+      "confidence_threshold": 0.20000000000000004,
       "task": "dense_region_caption",
       "text_input": "",
       "preprocessing_strategy": "Skip Detection",
       "target_preprocess_size": 768,
-      "min_size": true,
       "use_image_for_padding": "",
       "exclude_objects": "",
       "include_only": "false",
       "combine_objects": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "speak_and_recognation": {
         "__value__": [
           false,
           true
@@ -1213,13 +1150,7 @@
       "text": [
         "1779",
         2
-      ],
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      ]
     },
     "class_type": "HappyinWordReplacer",
     "_meta": {
