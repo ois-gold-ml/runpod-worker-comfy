@@ -232,7 +232,7 @@
   },
   "2583": {
     "inputs": {
-      "image": "261A9188.jpg"
+      "image": "input.jpg"
     },
     "class_type": "StableContusionImageLoader",
     "_meta": {
