@@ -5,9 +5,9 @@
 # Check needs to install requirements for all nodes!!!
 
 https://github.com/ltdrdata/ComfyUI-Manager.git b0daf81185e02c2876066272b0fdcc0333b64eab
-git@github.com:AnastasiyaW/stable_contusion.git
-git@github.com:AnastasiyaW/happyin.git
-git@github.com:AnastasiyaW/happyin_canny.git
+https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/stable_contusion.git
+https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/happyin.git
+https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/happyin_canny.git
 https://github.com/WASasquatch/was-node-suite-comfyui
 https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes
 https://github.com/city96/ComfyUI-GGUF

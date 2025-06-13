@@ -33,3 +33,6 @@ htmlcov/
 
 # Generated files that may be large
 data/output.png
+
+# generated at build-time with tht GH personal access token inlined
+src/custom_nodes.txt
