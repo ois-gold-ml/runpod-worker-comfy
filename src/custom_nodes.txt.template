@@ -7,6 +7,7 @@
 https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/stable_contusion.git
 https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/happyin.git
 https://${GH_ACCESS_TOKEN}@github.com/AnastasiyaW/happyin_canny.git
+https://${GH_ACCESS_TOKEN}@github.com/happy-in-happy/ComfyUI_PsdBatchSaver.git
 https://github.com/WASasquatch/was-node-suite-comfyui
 https://github.com/Derfuu/Derfuu_ComfyUI_ModdedNodes
 https://github.com/city96/ComfyUI-GGUF
