@@ -72,7 +72,7 @@ COPY workflows/ /workflows/
 
 # Add scripts
 COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py src/install_custom_nodes.sh src/custom_nodes.txt.template test_input.json /
-RUN chmod +x /start.sh /restore_snapshot.sh
+# RUN chmod +x /start.sh /restore_snapshot.sh
 
 # Test validation command - will fail if any of the expected files/directories don't exist
 RUN echo "Running file structure validation tests..." && \
