@@ -122,11 +122,10 @@ COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_
 RUN /install_custom_nodes.sh
 
 # Warm up ComfyUI: start it, wait for the log line, then kill it
-RUN python3 /comfyui/main.py --disable-auto-launch --disable-metadata > /tmp/comfyui.log 2>&1 & \
-    pid=$! ; \
-    ( tail -F /tmp/comfyui.log & ) | grep -q "All startup tasks have been completed" ; \
-    kill $pid ; \
-    sleep 2
+RUN set -e; \
+    python3 /comfyui/main.py --disable-auto-launch --disable-metadata 2>&1 | \
+    tee /tmp/comfyui.log | \
+    grep -q "All startup tasks have been completed"
 
 # Stage 5: Download models (optional)
 FROM production as downloader
