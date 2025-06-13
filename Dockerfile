@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git \
     wget \
+    gettext \
     libgl1 \
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
@@ -73,11 +74,6 @@ COPY workflows/ /workflows/
 COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json /
 RUN chmod +x /start.sh /restore_snapshot.sh
 
-# Copy and test custom nodes installation script
-COPY src/install_custom_nodes.sh /install_custom_nodes.sh
-COPY src/custom_nodes.txt /custom_nodes.txt
-RUN chmod +x /install_custom_nodes.sh
-
 # Test validation command - will fail if any of the expected files/directories don't exist
 RUN echo "Running file structure validation tests..." && \
     test -d /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge && \
@@ -94,7 +90,6 @@ RUN echo "Running file structure validation tests..." && \
     test -f /workflows/5_0.6/workflow.json && \
     test -f /start.sh && test -x /start.sh && \
     test -f /restore_snapshot.sh && test -x /restore_snapshot.sh && \
-    test -f /install_custom_nodes.sh && test -x /install_custom_nodes.sh && \
     test -f /rp_handler.py && \
     test -f /test_input.json && \
     echo "All file structure tests passed!"
@@ -118,12 +113,18 @@ COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
 COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /custom_nodes.txt /rp_handler.py /test_input.json /
 
-# Make sure this comes BEFORE running install_custom_nodes.sh
+# Copy the template file
+COPY src/custom_nodes.txt.template /custom_nodes.txt.template
+
+# Set the environment variable (ARG/ENV as needed)
 ARG GH_ACCESS_TOKEN
-RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+ENV GH_ACCESS_TOKEN=${GH_ACCESS_TOKEN}
+
+# Generate custom_nodes.txt with envsubst
+RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
 
 # Now run your install script
-RUN /install_custom_nodes.sh
+RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
 # FROM production as downloader
