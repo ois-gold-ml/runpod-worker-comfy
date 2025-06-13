@@ -57,10 +57,6 @@ WORKDIR /comfyui
 # Stage 3: File operations (shared between test and production)
 FROM test-base as file-operations-test
 
-# Create necessary directories for controlnet aux
-RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge
-RUN mkdir -p /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline
-
 # Support for the network volume
 COPY src/extra_model_paths.yaml ./
 
@@ -72,12 +68,10 @@ COPY workflows/ /workflows/
 
 # Add scripts
 COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py src/install_custom_nodes.sh src/custom_nodes.txt.template test_input.json /
-# RUN chmod +x /start.sh /restore_snapshot.sh
+RUN chmod +x /start.sh /restore_snapshot.sh /install_custom_nodes.sh
 
 # Test validation command - will fail if any of the expected files/directories don't exist
 RUN echo "Running file structure validation tests..." && \
-    test -d /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/Diffusion-Edge && \
-    test -d /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts/TheMistoAI/MistoLine/Anyline && \
     test -f /comfyui/extra_model_paths.yaml && \
     test -d /workflows && \
     test -f /workflows/2_0.4/workflow.json && \
@@ -123,7 +117,6 @@ ENV GH_ACCESS_TOKEN=${GH_ACCESS_TOKEN}
 RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
 
 # Now run your install script
-RUN chmod +x /install_custom_nodes.sh
 RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
