@@ -71,7 +71,7 @@ RUN mkdir -p /workflows
 COPY workflows/ /workflows/
 
 # Add scripts
-COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json /
+COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py src/install_custom_nodes.sh src/custom_nodes.txt.template test_input.json /
 RUN chmod +x /start.sh /restore_snapshot.sh
 
 # Test validation command - will fail if any of the expected files/directories don't exist
@@ -92,6 +92,7 @@ RUN echo "Running file structure validation tests..." && \
     test -f /restore_snapshot.sh && test -x /restore_snapshot.sh && \
     test -f /rp_handler.py && \
     test -f /test_input.json && \
+    test -f /custom_nodes.txt.template && \
     echo "All file structure tests passed!"
 
 # Stage 4: Production build with dependencies
@@ -111,10 +112,8 @@ RUN pip3 install --upgrade pip setuptools wheel watchdog
 # Copy file structure from test stage
 COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
-COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /custom_nodes.txt /rp_handler.py /test_input.json /
-
-# Copy the template file
-COPY src/custom_nodes.txt.template /custom_nodes.txt.template
+COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /rp_handler.py /test_input.json /
+COPY --from=file-operations-test /custom_nodes.txt.template /custom_nodes.txt.template
 
 # Set the environment variable (ARG/ENV as needed)
 ARG GH_ACCESS_TOKEN

@@ -74,6 +74,7 @@ jobs:
       packages: write
 
     steps:
+      # without this the job fails in GH actions runner with "No space left on device"
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
 
