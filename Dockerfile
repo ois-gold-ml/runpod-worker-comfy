@@ -123,6 +123,7 @@ ENV GH_ACCESS_TOKEN=${GH_ACCESS_TOKEN}
 RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
 
 # Now run your install script
+RUN chmod +x /install_custom_nodes.sh
 RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
