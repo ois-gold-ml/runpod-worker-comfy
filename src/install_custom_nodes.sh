@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Directory for custom nodes
 CUSTOM_NODES_DIR="/comfyui/custom_nodes"

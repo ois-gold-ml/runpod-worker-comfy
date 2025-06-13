@@ -118,42 +118,28 @@ COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
 COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /custom_nodes.txt /rp_handler.py /test_input.json /
 
-# Run custom nodes installation script
+# Make sure this comes BEFORE running install_custom_nodes.sh
+ARG GH_ACCESS_TOKEN
+RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+# Now run your install script
 RUN /install_custom_nodes.sh
 
-# Warm up ComfyUI: start it, wait for the log line, then kill it
-RUN set -e; \
-    python3 /comfyui/main.py --disable-auto-launch --disable-metadata 2>&1 | \
-    tee /tmp/comfyui.log | \
-    grep -q "All startup tasks have been completed"
-
 # Stage 5: Download models (optional)
-FROM production as downloader
+# FROM production as downloader
 
-ARG HUGGINGFACE_ACCESS_TOKEN
-ARG GH_ACCESS_TOKEN
-
-# Fail if no HuggingFace token is provided
-RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
-        echo "ERROR: HUGGINGFACE_ACCESS_TOKEN build argument is required but not provided."; \
-        echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
-        exit 1; \
-    fi
-
-# Fail if no GitHub token is provided
-RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
-        echo "ERROR: GH_ACCESS_TOKEN build argument is required but not provided."; \
-        echo "Please provide it using: --build-arg GH_ACCESS_TOKEN=your_token"; \
-        echo "Create a token at: https://github.com/settings/tokens"; \
-        exit 1; \
-    fi
-
-# Configure git to use the token for GitHub authentication
-RUN git config --global url."https://${GH_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+# ARG HUGGINGFACE_ACCESS_TOKEN
 
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
 # RUN chmod +x /download_models.sh && /download_models.sh
+
+# Fail if no HuggingFace token is provided
+# RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
+#         echo "ERROR: HUGGINGFACE_ACCESS_TOKEN build argument is required but not provided."; \
+#         echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
+#         exit 1; \
+#     fi
 
 # Final stage
 FROM production as final
