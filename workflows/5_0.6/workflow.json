@@ -44,7 +44,7 @@
   },
   "1793": {
     "inputs": {
-      "lora_name": "big melt\\melt_LF_no_g_v1-000018.safetensors",
+      "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1,
       "strength_clip": 1,
       "model": [
@@ -96,7 +96,7 @@
   },
   "1809": {
     "inputs": {
-      "ckpt_name": "FLUX-checkpoints\\flux1-schnell-fp8.safetensors"
+      "ckpt_name": "FLUX-checkpoints/flux1-schnell-fp8.safetensors"
     },
     "class_type": "CheckpointLoaderSimple",
     "_meta": {
@@ -105,7 +105,7 @@
   },
   "1811": {
     "inputs": {
-      "clip_name1": "CLIP-GmP-ViT-L-14\\ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
+      "clip_name1": "CLIP-GmP-ViT-L-14/ViT-L-14-TEXT-detail-improved-hiT-GmP-TE-only-HF.safetensors",
       "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
       "type": "flux",
       "device": "default"
@@ -253,7 +253,7 @@
   },
   "2603": {
     "inputs": {
-      "lora_name": "big melt\\melt_LF_no_g_v1-000018.safetensors",
+      "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1.0000000000000002,
       "strength_clip": 1,
       "model": [
@@ -895,7 +895,7 @@
   },
   "2745": {
     "inputs": {
-      "unet_name": "FLUX.1-dev-gguf\\flux1-dev-F16.gguf"
+      "unet_name": "flux1-dev-F16.gguf"
     },
     "class_type": "UnetLoaderGGUF",
     "_meta": {
@@ -987,7 +987,7 @@
   },
   "2763": {
     "inputs": {
-      "control_net_name": "FLUX.1\\Shakker-Labs-ControlNet-Union-Pro\\diffusion_pytorch_model.safetensors",
+      "control_net_name": "FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors",
       "model": [
         "1809",
         0
