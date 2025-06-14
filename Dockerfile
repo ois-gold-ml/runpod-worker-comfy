@@ -118,6 +118,9 @@ RUN pip3 install -r requirements.txt
 # required for ComfyUI-Apt_Preset
 RUN pip3 install --upgrade pip setuptools wheel watchdog
 
+# required for happyin image describer
+RUN pip3 install ollama
+
 # Copy file structure from test stage
 COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
@@ -144,6 +147,12 @@ RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --director
 RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/sams" \
     "https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth"
 
+
+
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id=model,
+                local_dir=model_path,
+                local_dir_use_symlinks=False)
 
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
