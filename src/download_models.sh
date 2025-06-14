@@ -52,11 +52,11 @@ echo "Waiting for CLIP model downloads to complete..."
 wait
 
 # Download ControlNet models in parallel
-echo "Downloading ControlNet models in parallel..."
+echo "Downloading ControlNet models"
 # Clone Union Pro in background
-git clone https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro /tmp/controlnet-union &
+wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/controlnet/FLUX.1/Shakker-Labs-ControlNet-Union-Pro" \
+    "https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro/resolve/main/diffusion_pytorch_model.safetensors"
 
-# Download other ControlNet models
 wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/controlnet/FLUX.1-dev-Controlnet-Inpainting-Beta" \
     "https://huggingface.co/alimama-creative/FLUX.1-dev-Controlnet-Inpainting-Beta/resolve/main/diffusion_pytorch_model.safetensors" &
 
@@ -69,12 +69,6 @@ wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-pr
 # Wait for all ControlNet downloads
 echo "Waiting for ControlNet downloads to complete..."
 wait
-
-# Process Union Pro after clone completes
-echo "Processing Union Pro ControlNet..."
-mkdir -p models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro
-cp /tmp/controlnet-union/diffusion_pytorch_model.safetensors models/FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors
-rm -rf /tmp/controlnet-union
 
 # Download remaining models in parallel
 echo "Downloading remaining models in parallel..."

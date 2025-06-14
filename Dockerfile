@@ -28,6 +28,21 @@ ENV PYTHONUNBUFFERED=1
 # Speed up some cmake builds
 ENV CMAKE_BUILD_PARALLEL_LEVEL=8
 
+ARG HUGGINGFACE_ACCESS_TOKEN
+RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
+        echo "ERROR: HUGGINGFACE_ACCESS_TOKEN build argument is required but not provided."; \
+        echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
+        exit 1; \
+    fi
+
+# Set the environment variable (ARG/ENV as needed)
+ARG GH_ACCESS_TOKEN
+RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
+        echo "ERROR: GH_ACCESS_TOKEN build argument is required but not provided."; \
+        echo "Please provide it using: --build-arg GH_ACCESS_TOKEN=your_token"; \
+        exit 1; \
+    fi
+
 # Install Python, git and other necessary tools including aria2 for fast downloads
 RUN apt-get update && apt-get install -y \
     python3.11 \
@@ -109,31 +124,32 @@ COPY --from=file-operations-test /workflows/ /workflows/
 COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /rp_handler.py /test_input.json /
 COPY --from=file-operations-test /custom_nodes.txt.template /custom_nodes.txt.template
 
-# Set the environment variable (ARG/ENV as needed)
-ARG GH_ACCESS_TOKEN
-ENV GH_ACCESS_TOKEN=${GH_ACCESS_TOKEN}
-
 # Generate custom_nodes.txt with envsubst
 RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
 
-# Now run your install script
+ARG GH_ACCESS_TOKEN
 RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
 # FROM production as downloader
 
-# ARG HUGGINGFACE_ACCESS_TOKEN
+ARG HUGGINGFACE_ACCESS_TOKEN
+RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/depthanything" \
+    "https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors"
+
+
+RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/LLM/Florence-2-large-PromptGen-v2.0" \
+    "https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0/resolve/main/model.safetensors"
+
+RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/sams" \
+    "https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth"
+
 
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
 # RUN chmod +x /download_models.sh && /download_models.sh
 
 # Fail if no HuggingFace token is provided
-# RUN if [ -z "$HUGGINGFACE_ACCESS_TOKEN" ]; then \
-#         echo "ERROR: HUGGINGFACE_ACCESS_TOKEN build argument is required but not provided."; \
-#         echo "Please provide it using: --build-arg HUGGINGFACE_ACCESS_TOKEN=your_token"; \
-#         exit 1; \
-#     fi
 
 # Final stage
 FROM production as final
