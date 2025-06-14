@@ -138,8 +138,8 @@ RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --director
     "https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vitl_fp32.safetensors"
 
 
-RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/LLM/Florence-2-large-PromptGen-v2.0" \
-    "https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0/resolve/main/model.safetensors"
+# RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/LLM/Florence-2-large-PromptGen-v2.0" \
+#     "https://huggingface.co/MiaoshouAI/Florence-2-large-PromptGen-v2.0/resolve/main/model.safetensors"
 
 RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/sams" \
     "https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth"
