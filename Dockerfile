@@ -149,10 +149,10 @@ RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --director
 
 
 
-from huggingface_hub import snapshot_download
-snapshot_download(repo_id=model,
-                local_dir=model_path,
-                local_dir_use_symlinks=False)
+# from huggingface_hub import snapshot_download
+# snapshot_download(repo_id=model,
+#                 local_dir=model_path,
+#                 local_dir_use_symlinks=False)
 
 # Copy and run model download script
 # COPY src/download_models.sh /download_models.sh
