@@ -181,23 +181,37 @@ class IntegrationTest(unittest.TestCase):
                 actual_workflow = workflow_data['prompt']
                 
                 # Debug: print the available node IDs to understand the structure
-                if 'nodes' in actual_workflow:
-                    node_ids = [str(node['id']) for node in actual_workflow['nodes']]
+                if isinstance(actual_workflow, dict):
+                    node_ids = list(actual_workflow.keys())
                     print(f"DEBUG: Available node IDs: {node_ids[:10]}...")  # Show first 10
                     
-                    # Look for the StableContusionImageLoader node specifically
-                    for node in actual_workflow['nodes']:
-                        if node.get('type') == 'StableContusionImageLoader':
-                            print(f"DEBUG: Found StableContusionImageLoader with ID: {node['id']}")
-                            print(f"DEBUG: Widget values: {node.get('widgets_values', [])}")
-                            # Use the actual ID found
-                            self.assertEqual(node['widgets_values'][0], 'input.jpg')
-                            break
+                    # Look for the StableContusionImageLoader node specifically (ID: 2583)
+                    if "2583" in actual_workflow:
+                        node_2583 = actual_workflow["2583"]
+                        if node_2583.get("class_type") == "StableContusionImageLoader":
+                            print(f"DEBUG: Found StableContusionImageLoader with ID: 2583")
+                            print(f"DEBUG: Node inputs: {node_2583.get('inputs', {})}")
+                            # Check that the image input is set correctly
+                            self.assertEqual(node_2583["inputs"]["image"], "input.jpg")
+                        else:
+                            self.fail(f"Node 2583 is not StableContusionImageLoader, got: {node_2583.get('class_type')}")
                     else:
-                        self.fail("StableContusionImageLoader node not found in workflow")
+                        # Search for StableContusionImageLoader in all nodes
+                        found_loader = False
+                        for node_id, node_data in actual_workflow.items():
+                            if node_data.get("class_type") == "StableContusionImageLoader":
+                                print(f"DEBUG: Found StableContusionImageLoader with ID: {node_id}")
+                                print(f"DEBUG: Node inputs: {node_data.get('inputs', {})}")
+                                self.assertEqual(node_data["inputs"]["image"], "input.jpg")
+                                found_loader = True
+                                break
+                        
+                        if not found_loader:
+                            self.fail("StableContusionImageLoader node not found in workflow")
                 else:
-                    print(f"DEBUG: Workflow structure keys: {list(actual_workflow.keys())}")
-                    self.fail("No 'nodes' key found in workflow")
+                    print(f"DEBUG: Workflow structure type: {type(actual_workflow)}")
+                    print(f"DEBUG: Workflow keys if dict: {list(actual_workflow.keys()) if isinstance(actual_workflow, dict) else 'Not a dict'}")
+                    self.fail("Workflow structure is not a dictionary")
             
         finally:
             # Restore the original function

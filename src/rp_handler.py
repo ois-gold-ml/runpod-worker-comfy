@@ -6,8 +6,11 @@ import time
 import os
 import requests
 import uuid
+import logging
+import sys
 from io import BytesIO
 from tusclient import client as tus_client
+from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
 
 # Logging level - set to "debug" for verbose logging
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "info").lower()
@@ -27,6 +30,49 @@ REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
 # Enable dry mode - skip ComfyUI processing and just pass through images
 DRY_MODE = os.environ.get("DRY_MODE", "false").lower() == "true"
 
+# Module-level logger
+logger = None
+
+def setup_logger():
+    """
+    Sets up and configures the module-level logger instance.
+    """
+    global logger
+    if logger is not None:
+        return logger
+        
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    LOKI_URL = os.getenv("LOKI_URL")
+
+    if LOKI_URL:
+        logger.info("Configuring Loki logging.")
+        loki_handler = LokiLoggerHandler(
+            url=LOKI_URL,
+            labels={"app": "ois-gold-serverless-worker"}
+        )
+        logger.addHandler(loki_handler)
+    else:
+        logger.warning("Loki credentials not provided, falling back to local logging.")
+        
+        local_handler = logging.StreamHandler(sys.stdout)
+        local_handler.setLevel(logging.DEBUG)
+        
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        local_handler.setFormatter(formatter)
+        
+        logger.addHandler(local_handler)
+    
+    return logger
+
+def ensure_logger():
+    """
+    Ensures that the logger is set up before use.
+    """
+    global logger
+    if logger is None:
+        setup_logger()
 
 def validate_input(job_input):
     """
@@ -90,6 +136,7 @@ def check_server(url, retries=500, delay=50):
     Returns:
     bool: True if the server is reachable within the given number of retries, otherwise False
     """
+    ensure_logger()
 
     for i in range(retries):
         try:
@@ -97,7 +144,7 @@ def check_server(url, retries=500, delay=50):
 
             # If the response status code is 200, the server is up and running
             if response.status_code == 200:
-                print(f"runpod-worker-comfy - API is reachable")
+                logger.info("API is reachable", extra={"url": url})
                 return True
         except requests.RequestException as e:
             # If an exception occurs, the server may not be ready
@@ -106,9 +153,7 @@ def check_server(url, retries=500, delay=50):
         # Wait for the specified delay before retrying
         time.sleep(delay / 1000)
 
-    print(
-        f"runpod-worker-comfy - Failed to connect to server at {url} after {retries} attempts."
-    )
+    logger.error("Failed to connect to server", extra={"url": url, "retries": retries})
     return False
 
 
@@ -125,8 +170,10 @@ def download_image(url, save_path):
                If successful, returns (True, image_data).
                If unsuccessful, returns (False, error_message).
     """
+    ensure_logger()
+    
     try:
-        print(f"runpod-worker-comfy - downloading image from {url}")
+        logger.info("Downloading image", extra={"url": url})
         response = requests.get(url, stream=True)
         response.raise_for_status()  # Raise an exception for HTTP errors
 
@@ -137,7 +184,7 @@ def download_image(url, save_path):
         return True, None
     except requests.RequestException as e:
         error_message = f"Error downloading image: {str(e)}"
-        print(f"runpod-worker-comfy - {error_message}")
+        logger.error("Failed to download image", extra={"url": url, "error": str(e)})
         return False, error_message
 
 
@@ -151,18 +198,20 @@ def upload_image_to_comfy(image_data):
     Returns:
         dict: A dictionary containing the status and details of the upload.
     """
+    ensure_logger()
+    
     if not image_data:
         return {"status": "error", "message": "No image data provided"}
 
     # Generate a UUID filename
-    filename = f"{uuid.uuid4()}.png"
+    image_filename = f"{uuid.uuid4()}.png"
     binary_data = image_data[1]  # We only need the binary data, not the original filename
-    print(f"runpod-worker-comfy - uploading image: {filename}")
+    logger.info("Uploading image to ComfyUI", extra={"image_filename": image_filename})
 
     try:
         # Prepare the form data
         files = {
-            "image": (filename, BytesIO(binary_data), "image/png"),
+            "image": (image_filename, BytesIO(binary_data), "image/png"),
             "overwrite": (None, "true"),
         }
 
@@ -170,15 +219,15 @@ def upload_image_to_comfy(image_data):
         response = requests.post(f"http://{COMFY_HOST}/upload/image", files=files)
         response.raise_for_status()  # Raise an exception for HTTP errors
         
-        print(f"runpod-worker-comfy - image upload complete")
+        logger.info("Image upload complete", extra={"image_filename": image_filename})
         return {
             "status": "success",
-            "message": f"Successfully uploaded {filename}",
-            "filename": filename
+            "message": f"Successfully uploaded {image_filename}",
+            "filename": image_filename
         }
     except requests.RequestException as e:
-        error_message = f"Error uploading {filename}: {str(e)}"
-        print(f"runpod-worker-comfy - {error_message}")
+        error_message = f"Error uploading {image_filename}: {str(e)}"
+        logger.error("Failed to upload image to ComfyUI", extra={"image_filename": image_filename, "error": str(e)})
         return {
             "status": "error",
             "message": error_message
@@ -250,14 +299,14 @@ def process_output_images(outputs, job_id, upload_url=None):
                 image_path = os.path.join(image["subfolder"], image["filename"])
                 output_images.append(image_path)
 
-    print(f"runpod-worker-comfy - found {len(output_images)} images to upload")
+    logger.info("Found images to upload", extra={"image_count": len(output_images)})
 
     # Upload each image
     for image_path in output_images:
         local_image_path = f"{COMFY_OUTPUT_PATH}/{image_path}"
         
         if not os.path.exists(local_image_path):
-            print(f"runpod-worker-comfy - image does not exist: {local_image_path}")
+            logger.error("Image does not exist", extra={"local_image_path": local_image_path})
             continue
 
         try:
@@ -268,7 +317,7 @@ def process_output_images(outputs, job_id, upload_url=None):
             file_size = os.path.getsize(local_image_path)
             
             # Set up the uploader
-            print(f"runpod-worker-comfy - uploading image {image_path} using TUS protocol to {upload_url}")
+            logger.info("Uploading image using TUS protocol", extra={"image_path": image_path, "upload_url": upload_url})
             uploader = my_client.uploader(local_image_path, chunk_size=5*1024*1024)
             
             # Upload the file
@@ -278,11 +327,11 @@ def process_output_images(outputs, job_id, upload_url=None):
             uploaded_url = uploader.url
             uploaded_urls.append(uploaded_url)
             
-            print(f"runpod-worker-comfy - image {image_path} was uploaded successfully")
+            logger.info("Image uploaded successfully", extra={"image_path": image_path})
             
         except Exception as e:
             error_message = f"Error uploading image {image_path} using TUS protocol: {str(e)}"
-            print(f"runpod-worker-comfy - {error_message}")
+            logger.error("Failed to upload image using TUS protocol", extra={"image_path": image_path, "error": str(e)})
             return {
                 "status": "error",
                 "message": error_message,
@@ -328,19 +377,21 @@ def process_dry_mode(input_url, upload_url):
 
         try:
             # Wait for 5 seconds before uploading
-            print(f"runpod-worker-comfy [DRY_MODE] - waiting 5 seconds before upload...")
+            logger.info("Waiting before upload in dry mode", extra={"wait_seconds": 5})
             time.sleep(5)
             
-            # Set up the uploader
-            print(f"runpod-worker-comfy [DRY_MODE] - uploading image using TUS protocol to {upload_url}")
-            uploader = my_client.uploader(temp_filename, chunk_size=5*1024*1024)
+            # Set up the uploader with proper file handling
+            logger.info("Uploading image using TUS protocol in dry mode", extra={"upload_url": upload_url})
             
-            # Upload the file
-            uploader.upload()
+            # Use context manager to ensure file is properly closed
+            with open(temp_filename, 'rb') as file_obj:
+                uploader = my_client.uploader(file_obj, chunk_size=5*1024*1024)
+                # Upload the file
+                uploader.upload()
             
             # Calculate total processing time
             total_time = time.time() - start_time
-            print(f"runpod-worker-comfy [DRY_MODE] - image uploaded successfully in {total_time:.2f} seconds")
+            logger.info("Image uploaded successfully in dry mode", extra={"total_time_seconds": round(total_time, 2)})
             
             return {
                 "status": "success"
@@ -368,6 +419,11 @@ def handler(job):
     Returns:
         dict: A dictionary containing either an error message or a success status with generated images.
     """
+    try:
+        setup_logger()
+    except Exception as e:
+        logger.error("Error setting up logger", extra={"error": str(e)})
+
     validated_data, error_message = validate_input(job['input'])
     if error_message:
         return {"error": error_message}
@@ -379,7 +435,7 @@ def handler(job):
 
     # If in dry mode, skip ComfyUI processing
     if DRY_MODE:
-        print("runpod-worker-comfy - running in DRY_MODE")
+        logger.info("Running in dry mode", extra={})
         result = process_dry_mode(input_url, upload_url)
         return {**result, "refresh_worker": REFRESH_WORKER}
 
@@ -410,12 +466,12 @@ def handler(job):
     try:
         queued_workflow = queue_workflow(workflow)
         prompt_id = queued_workflow["prompt_id"]
-        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
+        logger.info("Queued workflow", extra={"prompt_id": prompt_id})
     except Exception as e:
         return {"error": f"Error queuing workflow: {str(e)}"}
 
     # Poll for completion
-    print(f"runpod-worker-comfy - wait until image generation is complete")
+    logger.info("Waiting for image generation to complete", extra={})
     retries = 0
     try:
         while retries < COMFY_POLLING_MAX_RETRIES:
@@ -423,7 +479,7 @@ def handler(job):
 
             # Log history output every fifth iteration only in debug mode
             if LOG_LEVEL == "debug" and retries % 5 == 0:
-                print(f"runpod-worker-comfy - polling iteration {retries}, history: {json.dumps(history)}")
+                logger.debug("Polling iteration", extra={"iteration": retries, "history": json.dumps(history)})
 
             # Exit the loop if we have found the history
             if prompt_id in history and history[prompt_id].get("outputs"):
