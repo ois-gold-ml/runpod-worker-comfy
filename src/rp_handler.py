@@ -8,6 +8,7 @@ import requests
 import uuid
 import logging
 import sys
+import glob
 from io import BytesIO
 from tusclient import client as tus_client
 from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
@@ -266,20 +267,20 @@ def get_history(prompt_id):
         return json.loads(response.read())
 
 
-def process_output_images(outputs, job_id, upload_url=None):
+def process_output_images(job_id, upload_url=None):
     """
-    This function processes output images and uploads them using the TUS protocol.
+    This function scans the output directory for all files and uploads them using the TUS protocol.
+    After successful upload, each file is removed to prevent re-uploading in subsequent runs.
 
     Args:
-        outputs (dict): A dictionary containing the outputs from image generation,
-                        typically includes node IDs and their respective output data.
         job_id (str): The unique identifier for the job.
-        upload_url (str): The URL to upload the image to using the TUS protocol.
+        upload_url (str): The URL to upload the files to using the TUS protocol.
 
     Returns:
-        dict: A dictionary with the status ('success' or 'error') and the message,
-              which is the URL to the uploaded image or an error message.
+        dict: A dictionary with the status ('success' or 'error') and the message.
     """
+    ensure_logger()
+    
     if upload_url is None:
         return {
             "status": "error",
@@ -289,62 +290,109 @@ def process_output_images(outputs, job_id, upload_url=None):
     # The path where ComfyUI stores the generated images
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
 
-    output_images = []
-    uploaded_urls = []
+    if not os.path.exists(COMFY_OUTPUT_PATH):
+        logger.error("Output directory does not exist", extra={"output_path": COMFY_OUTPUT_PATH})
+        return {
+            "status": "error",
+            "message": f"Output directory does not exist: {COMFY_OUTPUT_PATH}",
+        }
 
-    # Collect all image paths
-    for node_id, node_output in outputs.items():
-        if "images" in node_output:
-            for image in node_output["images"]:
-                image_path = os.path.join(image["subfolder"], image["filename"])
-                output_images.append(image_path)
+    # Find all files in the output directory recursively
+    all_files = []
+    for root, dirs, files in os.walk(COMFY_OUTPUT_PATH):
+        for file in files:
+            full_path = os.path.join(root, file)
+            # Skip hidden files and directories that start with underscore or contain placeholder text
+            if (not file.startswith('.') and 
+                not file.startswith('_') and 
+                'placeholder' not in file.lower() and
+                '_will_be_put_here' not in file.lower()):
+                all_files.append(full_path)
 
-    logger.info("Found images to upload", extra={"image_count": len(output_images)})
+    logger.info("Found files to upload", extra={"file_count": len(all_files), "job_id": job_id})
 
-    # Upload each image
-    for image_path in output_images:
-        local_image_path = f"{COMFY_OUTPUT_PATH}/{image_path}"
-        
-        if not os.path.exists(local_image_path):
-            logger.error("Image does not exist", extra={"local_image_path": local_image_path})
+    if not all_files:
+        logger.warning("No files found to upload", extra={"output_path": COMFY_OUTPUT_PATH, "job_id": job_id})
+        return {
+            "status": "success",
+            "message": "No files found to upload"
+        }
+
+    uploaded_count = 0
+    
+    # Upload each file
+    for file_path in all_files:
+        if not os.path.exists(file_path):
+            logger.warning("File no longer exists, skipping", extra={"file_path": file_path, "job_id": job_id})
             continue
 
         try:
+            # Get file info for logging
+            file_size = os.path.getsize(file_path)
+            relative_path = os.path.relpath(file_path, COMFY_OUTPUT_PATH)
+            
+            logger.info("Starting file upload", extra={
+                "file_path": relative_path,
+                "file_size_bytes": file_size,
+                "upload_url": upload_url,
+                "job_id": job_id
+            })
+
             # Create a TUS client
             my_client = tus_client.TusClient(upload_url)
             
-            # Get the file size
-            file_size = os.path.getsize(local_image_path)
-            
             # Set up the uploader
-            logger.info("Uploading image using TUS protocol", extra={"image_path": image_path, "upload_url": upload_url})
-            uploader = my_client.uploader(local_image_path, chunk_size=5*1024*1024)
+            uploader = my_client.uploader(file_path, chunk_size=5*1024*1024)
             
             # Upload the file
             uploader.upload()
             
             # Get the URL of the uploaded file
             uploaded_url = uploader.url
-            uploaded_urls.append(uploaded_url)
             
-            logger.info("Image uploaded successfully", extra={"image_path": image_path})
+            logger.info("File uploaded successfully", extra={
+                "file_path": relative_path,
+                "file_size_bytes": file_size,
+                "uploaded_url": uploaded_url,
+                "job_id": job_id
+            })
+            
+            # Remove the file after successful upload
+            try:
+                os.remove(file_path)
+                logger.info("File removed after upload", extra={
+                    "file_path": relative_path,
+                    "job_id": job_id
+                })
+            except OSError as e:
+                logger.warning("Failed to remove file after upload", extra={
+                    "file_path": relative_path,
+                    "error": str(e),
+                    "job_id": job_id
+                })
+            
+            uploaded_count += 1
             
         except Exception as e:
-            error_message = f"Error uploading image {image_path} using TUS protocol: {str(e)}"
-            logger.error("Failed to upload image using TUS protocol", extra={"image_path": image_path, "error": str(e)})
+            error_message = f"Error uploading file {relative_path} using TUS protocol: {str(e)}"
+            logger.error("Failed to upload file using TUS protocol", extra={
+                "file_path": relative_path,
+                "error": str(e),
+                "job_id": job_id
+            })
             return {
                 "status": "error",
                 "message": error_message,
             }
 
-    if not uploaded_urls:
-        return {
-            "status": "error",
-            "message": "No images were successfully uploaded",
-        }
+    logger.info("All files uploaded successfully", extra={
+        "uploaded_count": uploaded_count,
+        "job_id": job_id
+    })
 
     return {
-        "status": "success"
+        "status": "success",
+        "uploaded_count": uploaded_count
     }
 
 
@@ -433,6 +481,13 @@ def handler(job):
     upload_url = validated_data["output"]
     params = validated_data["params"]
 
+    # Check if ComfyUI input directory exists early to fail fast
+    COMFY_INPUT_PATH = os.environ.get("COMFY_INPUT_PATH", "/comfyui/input")
+    if not os.path.exists(COMFY_INPUT_PATH):
+        error_message = f"ComfyUI input directory does not exist: {COMFY_INPUT_PATH}"
+        logger.error("ComfyUI input directory not found", extra={"input_path": COMFY_INPUT_PATH})
+        return {"error": error_message}
+
     # If in dry mode, skip ComfyUI processing
     if DRY_MODE:
         logger.info("Running in dry mode", extra={})
@@ -440,7 +495,7 @@ def handler(job):
         return {**result, "refresh_worker": REFRESH_WORKER}
 
     # Download the input image
-    success, error_message = download_image(input_url, "/comfyui/input/input.jpg")
+    success, error_message = download_image(input_url, f"{COMFY_INPUT_PATH}/input.jpg")
     if not success:
         return {"error": error_message}
 
@@ -494,7 +549,7 @@ def handler(job):
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
     # Get the generated image and upload it using TUS protocol
-    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"], upload_url)
+    images_result = process_output_images(job["id"], upload_url)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
