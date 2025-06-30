@@ -147,16 +147,23 @@ RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --director
 RUN wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" --directory-prefix="models/sams" \
     "https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth"
 
-
-
-# from huggingface_hub import snapshot_download
-# snapshot_download(repo_id=model,
-#                 local_dir=model_path,
-#                 local_dir_use_symlinks=False)
-
-# Copy and run model download script
-# COPY src/download_models.sh /download_models.sh
-# RUN chmod +x /download_models.sh && /download_models.sh
+# Download Florence-2 models
+RUN pip3 install huggingface_hub && \
+    python3 -c "
+from huggingface_hub import snapshot_download
+import os
+os.environ['HF_TOKEN'] = '${HUGGINGFACE_ACCESS_TOKEN}'
+snapshot_download(
+    repo_id='microsoft/Florence-2-base',
+    local_dir='/comfyui/models/LLM/Florence-2-base',
+    local_dir_use_symlinks=False
+)
+snapshot_download(
+    repo_id='MiaoshouAI/Florence-2-large-PromptGen-v2.0',
+    local_dir='/comfyui/models/LLM/Florence-2-large-PromptGen-v2.0',
+    local_dir_use_symlinks=False
+)
+"
 
 # Fail if no HuggingFace token is provided
 
