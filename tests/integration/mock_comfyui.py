@@ -40,26 +40,43 @@ def handle_prompt():
         # Schedule completion after a brief delay
         def complete_job():
             time.sleep(1)  # Reduced time for faster tests
-            # Create test output images
-            for i in range(1, 4):
-                test_image_path = os.path.join(output_dir, f'test_output_{i}.png')
-                # Write distinct content for each image
+            
+            # Create subdirectories like real ComfyUI
+            batch_output_dir = os.path.join(output_dir, 'batch_output')
+            psd_output_dir = os.path.join(output_dir, 'psd_output')
+            os.makedirs(batch_output_dir, exist_ok=True)
+            os.makedirs(psd_output_dir, exist_ok=True)
+            
+            # Create test output images in different subdirectories
+            # Batch output files
+            for i in range(1, 3):  # 2 PNG files
+                test_image_path = os.path.join(batch_output_dir, f'result_image_{i}.png')
                 with open(test_image_path, 'wb') as f:
                     f.write(f'Result image {i}'.encode())
             
-            # Update prompt with output information for all 3 images
+            # PSD output files
+            psd_path = os.path.join(psd_output_dir, 'result.psd')
+            with open(psd_path, 'wb') as f:
+                f.write(b'Result image 3')
+            
+            # Create a report file in psd_output
+            report_path = os.path.join(psd_output_dir, 'psd_saver_report.txt')
+            with open(report_path, 'w') as f:
+                f.write('PSD processing report\nFiles processed: 1\n')
+            
+            # Update prompt with output information (though this won't be used anymore)
             prompts[prompt_id] = {
                 'outputs': {
                     'node_id': {
                         'images': [
-                            {'filename': 'test_output_1.png', 'subfolder': ''},
-                            {'filename': 'test_output_2.png', 'subfolder': ''},
-                            {'filename': 'test_output_3.png', 'subfolder': ''}
+                            {'filename': 'result_image_1.png', 'subfolder': 'batch_output'},
+                            {'filename': 'result_image_2.png', 'subfolder': 'batch_output'},
+                            {'filename': 'result.psd', 'subfolder': 'psd_output'}
                         ]
                     }
                 }
             }
-            print(f"ComfyUI Mock Server: Job complete, created 3 output images")
+            print(f"ComfyUI Mock Server: Job complete, created files in batch_output and psd_output")
             log_prompts()
         
         # Start the completion in a background thread

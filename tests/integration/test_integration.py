@@ -43,8 +43,15 @@ class IntegrationTest(unittest.TestCase):
         cls.output_dir = os.path.join(tempfile.gettempdir(), 'comfyui_output')
         os.makedirs(cls.output_dir, exist_ok=True)
         
+        # Create input directory where ComfyUI expects input images
+        cls.input_dir = os.path.join(tempfile.gettempdir(), 'comfyui_input')
+        os.makedirs(cls.input_dir, exist_ok=True)
+        
         # Set environment variable for output path
         os.environ['COMFY_OUTPUT_PATH'] = cls.output_dir
+        
+        # Set environment variable for input path  
+        os.environ['COMFY_INPUT_PATH'] = cls.input_dir
         
         # Set ComfyUI host to our mock server
         os.environ['COMFY_HOST'] = '127.0.0.1:8188'
@@ -111,9 +118,15 @@ class IntegrationTest(unittest.TestCase):
         # Clean up temporary directories
         if hasattr(cls, 'output_dir') and os.path.exists(cls.output_dir):
             shutil.rmtree(cls.output_dir, ignore_errors=True)
+        
+        if hasattr(cls, 'input_dir') and os.path.exists(cls.input_dir):
+            shutil.rmtree(cls.input_dir, ignore_errors=True)
     
     def test_handler_happy_path(self):
         """Test the full workflow with an input image."""
+        # Clear any previous uploads
+        self.tus_server.clear_uploads()
+        
         from src.rp_handler import handler
         
         # Patch the download_image function for this test
@@ -150,12 +163,24 @@ class IntegrationTest(unittest.TestCase):
             self.assertIn('status', result, f"Result doesn't have a status key: {result}")
             self.assertEqual(result['status'], 'success', f"Handler status is not success: {result}")
             
-            # Verify that exactly 3 files were uploaded to the TUS server
+            # Verify that exactly 5 files were uploaded to the TUS server
             uploads = self.tus_server.get_uploads()
-            self.assertEqual(len(uploads), 3, f"Expected 3 uploads, got {len(uploads)}")
+            self.assertEqual(len(uploads), 5, f"Expected 5 uploads, got {len(uploads)}")
             
+            # Define expected file contents (since filenames aren't preserved by TUS)
+            expected_contents = {
+                b'Result image 1',
+                b'Result image 2', 
+                b'Result image 3',
+                b'PSD processing report\nFiles processed: 1\n',
+                b'This is a test image content for verification'
+            }
+                
             # Verify all uploads are complete and content matches
-            for i, (upload_id, upload_data) in enumerate(uploads.items(), 1):
+            upload_list = list(uploads.items())
+            uploaded_contents = set()
+            
+            for i, (upload_id, upload_data) in enumerate(upload_list):
                 self.assertEqual(upload_data['offset'], upload_data['size'], 
                                 f"Upload {upload_id} is not complete: {upload_data['offset']}/{upload_data['size']}")
                 
@@ -163,16 +188,14 @@ class IntegrationTest(unittest.TestCase):
                 self.assertTrue(os.path.exists(upload_data['path']), 
                                f"Uploaded file doesn't exist at {upload_data['path']}")
                 
-                # Verify the file content matches what we generated
+                # Read file content
                 with open(upload_data['path'], 'rb') as f:
                     content = f.read()
-                    expected_content = f'Result image {i}'.encode()
-                    self.assertEqual(content, expected_content, 
-                                   f"Content of image {i} doesn't match expected content")
+                    uploaded_contents.add(content)
                     
-                # Verify the file size
-                self.assertEqual(os.path.getsize(upload_data['path']), len(expected_content),
-                                f"Uploaded file size doesn't match: {os.path.getsize(upload_data['path'])} != {len(expected_content)}")
+            # Verify all expected contents were uploaded
+            self.assertEqual(uploaded_contents, expected_contents,
+                           f"Uploaded file contents don't match expected contents. Got: {uploaded_contents}, Expected: {expected_contents}")
             
             # Verify the workflow JSON that was sent to ComfyUI
             # The mock ComfyUI server saves the received workflow to this file
