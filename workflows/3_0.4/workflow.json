@@ -17,7 +17,7 @@
       "task": "more_detailed_caption",
       "fill_mask": true,
       "keep_model_loaded": false,
-      "max_new_tokens": 1025,
+      "max_new_tokens": 1024,
       "num_beams": 3,
       "do_sample": true,
       "output_mask_select": "",
@@ -45,8 +45,8 @@
   "1793": {
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "1809",
         0
@@ -117,7 +117,7 @@
   },
   "1827": {
     "inputs": {
-      "float": 2
+      "float": 2.0000000000000004
     },
     "class_type": "Primitive float [Crystools]",
     "_meta": {
@@ -255,7 +255,7 @@
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1.0000000000000002,
-      "strength_clip": 1,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "2745",
         0
@@ -644,7 +644,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -763,7 +763,7 @@
       "cfg": 2,
       "sampler_name": "euler",
       "scheduler": "normal",
-      "denoise": 0.6000000000000001,
+      "denoise": 0.4000000000000001,
       "mode_type": "Linear",
       "tile_width": [
         "2667",
@@ -835,7 +835,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -897,7 +897,7 @@
     "inputs": {
       "grid_cols": 3,
       "grid_rows": 3,
-      "overlap_pixels": 256,
+      "overlap_pixels": 32,
       "image": [
         "2821",
         0
@@ -934,7 +934,6 @@
   },
   "2760": {
     "inputs": {
-      "text": "696",
       "anything": [
         "2758",
         0
@@ -951,7 +950,7 @@
       "start_percent": 0,
       "end_percent": 0.7000000000000002,
       "positive": [
-        "2711",
+        "2824",
         0
       ],
       "negative": [
@@ -1038,7 +1037,6 @@
   },
   "2807": {
     "inputs": {
-      "text": "912",
       "anything": [
         "2758",
         1
@@ -1063,8 +1061,8 @@
       "apply_mask2_to_layer": 2,
       "apply_mask3_to_layer": 3,
       "add_fill_layer": false,
-      "fill_layer_name": "-",
-      "fill_color_hex": "-",
+      "fill_layer_name": "Fill Layer",
+      "fill_color_hex": "#242424",
       "output_directory": "psd_output",
       "layer1_name": "V1",
       "layer2_name": "V2",
@@ -1144,21 +1142,15 @@
   },
   "2821": {
     "inputs": {
-      "confidence_threshold": 0.2,
+      "confidence_threshold": 0.20000000000000004,
       "task": "dense_region_caption",
       "text_input": "",
       "preprocessing_strategy": "Skip Detection",
       "target_preprocess_size": 768,
-      "min_size": true,
-      "use_image_for_padding": "",
+      "use_image_for_padding": true,
       "exclude_objects": "",
-      "include_only": "false",
-      "combine_objects": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "include_only": "",
+      "combine_objects": "false",
       "speak_and_recognation": {
         "__value__": [
           false,
@@ -1226,7 +1218,26 @@
       "title": "Happyin Word Replacer (Jewelry)"
     }
   },
-  "2825": {
+  "2824": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "1811",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "2827": {
     "inputs": {
       "filenames": [
         "2583",
@@ -1241,7 +1252,7 @@
       "quality": 100,
       "metadata": "",
       "images": [
-        "2820",
+        "2822",
         1
       ],
       "alpha_masks": [
@@ -1269,7 +1280,7 @@
       "quality": 100,
       "metadata": "",
       "images": [
-        "2822",
+        "2820",
         1
       ],
       "alpha_masks": [

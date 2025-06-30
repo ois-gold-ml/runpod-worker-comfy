@@ -45,8 +45,8 @@
   "1793": {
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "1809",
         0
@@ -117,11 +117,11 @@
   },
   "1827": {
     "inputs": {
-      "float": 2
+      "float": 2.0000000000000004
     },
     "class_type": "Primitive float [Crystools]",
     "_meta": {
-      "title": "во сколько раз апскейлим"
+      "title": "РІРѕ СЃРєРѕР»СЊРєРѕ СЂР°Р· Р°РїСЃРєРµР№Р»РёРј"
     }
   },
   "2145": {
@@ -236,7 +236,7 @@
     },
     "class_type": "StableContusionImageLoader",
     "_meta": {
-      "title": "Stable Contusion 💋 Image Loader"
+      "title": "Stable Contusion рџ’‹ Image Loader"
     }
   },
   "2585": {
@@ -255,7 +255,7 @@
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1.0000000000000002,
-      "strength_clip": 1,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "2745",
         0
@@ -369,15 +369,6 @@
   },
   "2633": {
     "inputs": {
-      "text_0": "melt, diamond engagement ring with a pear-shaped center stone surrounded by a halo of smaller diamonds. The diamond is set in a 14k white gold setting and is the focal point of the image, with a plain white background providing a clean and crisp backdrop for the diamond. the diamond appears to be of high quality, with no visible imperfections or imperfections, making it a beautiful and elegant piece of jewelry. The overall effect is one of sophistication and elegance, perfect for any special occasion.",
-      "text_1": "melt, A round brilliant cut diamond in the center of a halo of smaller diamonds surrounding it, set in a 14k white gold engagement ring. the diamond is the focal point of the image, surrounded by a double halo setting, which gives it a classic and elegant look. The diamond appears to be of high quality, with no visible imperfections or imperfections, making it a perfect choice for a special occasion. the setting is delicate and intricate, with small diamonds scattered throughout the halo, adding to the overall elegance and sophistication of the piece.",
-      "text_2": "melt, diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a double halo of smaller diamonds. the diamond is set in a 14k white gold band with a delicate filigree design around the edges, giving it a unique and elegant look. The center diamond is the focal point of the image, with the smaller diamonds surrounding it in a symmetrical pattern, creating a beautiful contrast. the diamonds sparkle brilliantly against the white background, making the ring stand out even more. the overall design of the ring is elegant and sophisticated, making it a perfect choice for a special occasion.",
-      "text_3": "melt, diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a halo of smaller diamonds. The diamond is set in a prong setting and is set on a 14k white gold band with a delicate filigree design along the edges. The center stone is round and appears to be a solitaire, with a total carat weight of approximately 1.50 carats. The diamonds are arranged in a symmetrical pattern around the center stone, with smaller diamonds on either side, creating a marquise shape. the setting is detailed with a milgrain pattern, giving the ring a classic and elegant look. the background of the image is plain white, allowing the diamond to stand out and be the main focus. the overall design of the ring is simple yet elegant, making it a perfect choice for a special occasion.",
-      "text_4": "melt, diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a halo of smaller diamonds on either side. the diamond is set in a 14k white gold band and is the focal point of the image, set against a plain white background. the ring has a classic and elegant design, with a smooth and polished finish that reflects the light. The center stone is round and appears to be a brilliant cut, with no visible imperfections or imperfections. the diamonds are arranged in a symmetrical pattern around the halo, creating a double halo effect. the overall effect is one of sophistication and elegance, making the ring a perfect choice for any special occasion.",
-      "text_5": "melt, white gold engagement ring with a round brilliant cut diamond in the center. The diamond is surrounded by a halo of smaller diamonds on either side, creating a double halo effect. The band of the ring is thin and delicate, with a slight curve at the top for added comfort. The setting appears to be polished and has a polished finish, giving it a classic and timeless look. the background of the image is plain white, making the ring stand out.",
-      "text_6": "melt, white gold wedding ring with a curved design, featuring five round brilliant cut diamonds set in a prong setting. The diamonds are arranged in a row, with the largest diamond at the top and the smallest at the bottom, creating a row of smaller diamonds along the edge of the band. the band is polished and has a smooth, polished finish, reflecting the light and creating a reflection on its surface. the background is plain white, making the ring stand out in the center of the image.",
-      "text_7": "melt, polished silver bangle bracelet on a white background. The bangle is curved and smooth, with a smooth, polished surface that reflects light and creates a subtle shadow effect. The silver color of the bangle stands out against the plain white background, making it the focal point of the image. The bracelet appears to be made of sterling silver and has a polished finish, giving it a sleek and elegant look.",
-      "text_8": "melt, A black and white photograph of a thin, curved object on a plain white background. The object appears to be made of stainless steel and has a smooth, polished surface. It is positioned in the center of the image, with no other objects or objects in the frame. the object has a slight curve, giving it a smooth and polished appearance. The background is a solid white color, providing a stark contrast to the object.",
       "text": [
         "2634",
         0
@@ -385,7 +376,7 @@
     },
     "class_type": "ShowText|pysssss",
     "_meta": {
-      "title": "Show Text 🐍"
+      "title": "Show Text рџђЌ"
     }
   },
   "2634": {
@@ -449,7 +440,7 @@
     },
     "class_type": "SAMAutomaticSegment",
     "_meta": {
-      "title": "Stable Contusion 💋 SAM Auto Segment"
+      "title": "Stable Contusion рџ’‹ SAM Auto Segment"
     }
   },
   "2640": {
@@ -516,7 +507,7 @@
     },
     "class_type": "GetImageSize+",
     "_meta": {
-      "title": "🔧 Get Image Size"
+      "title": "рџ”§ Get Image Size"
     }
   },
   "2649": {
@@ -537,7 +528,7 @@
     },
     "class_type": "GetImageSize+",
     "_meta": {
-      "title": "🔧 Get Image Size"
+      "title": "рџ”§ Get Image Size"
     }
   },
   "2666": {
@@ -553,7 +544,7 @@
     },
     "class_type": "BatchCollapser",
     "_meta": {
-      "title": "Stable Contusion 💋 Batch Collapser"
+      "title": "Stable Contusion рџ’‹ Batch Collapser"
     }
   },
   "2667": {
@@ -653,7 +644,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -683,7 +674,7 @@
     },
     "class_type": "StableContusionTileAssembly",
     "_meta": {
-      "title": "Stable Contusion 💋 SAM Tile Assembly"
+      "title": "Stable Contusion рџ’‹ SAM Tile Assembly"
     }
   },
   "2711": {
@@ -844,7 +835,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -874,7 +865,7 @@
     },
     "class_type": "StableContusionTileAssembly",
     "_meta": {
-      "title": "Stable Contusion 💋 SAM Tile Assembly"
+      "title": "Stable Contusion рџ’‹ SAM Tile Assembly"
     }
   },
   "2739": {
@@ -890,7 +881,7 @@
     },
     "class_type": "BatchCollapser",
     "_meta": {
-      "title": "Stable Contusion 💋 Batch Collapser"
+      "title": "Stable Contusion рџ’‹ Batch Collapser"
     }
   },
   "2745": {
@@ -914,7 +905,7 @@
     },
     "class_type": "StableContusionTileGrid",
     "_meta": {
-      "title": "Stable Contusion 💋 Tile Grid"
+      "title": "Stable Contusion рџ’‹ Tile Grid"
     }
   },
   "2757": {
@@ -938,12 +929,11 @@
     },
     "class_type": "GetImageSize+",
     "_meta": {
-      "title": "🔧 Get Image Size"
+      "title": "рџ”§ Get Image Size"
     }
   },
   "2760": {
     "inputs": {
-      "text": "248",
       "anything": [
         "2758",
         0
@@ -1030,7 +1020,7 @@
     },
     "class_type": "StableContusionTileCalculator",
     "_meta": {
-      "title": "Stable Contusion 💋 Tile Calculator"
+      "title": "Stable Contusion рџ’‹ Tile Calculator"
     }
   },
   "2806": {
@@ -1047,7 +1037,6 @@
   },
   "2807": {
     "inputs": {
-      "text": "248",
       "anything": [
         "2758",
         1
@@ -1071,7 +1060,7 @@
       "apply_mask1_to_layer": 1,
       "apply_mask2_to_layer": 2,
       "apply_mask3_to_layer": 3,
-      "add_fill_layer": true,
+      "add_fill_layer": false,
       "fill_layer_name": "Fill Layer",
       "fill_color_hex": "#242424",
       "output_directory": "psd_output",
@@ -1090,10 +1079,6 @@
       "layer2_image": [
         "2822",
         1
-      ],
-      "mask1": [
-        "2813",
-        0
       ]
     },
     "class_type": "StableContusionPsdBatchSaver",
@@ -1103,15 +1088,6 @@
   },
   "2812": {
     "inputs": {
-      "text_0": "A close-up of a diamond engagement ring with a pear-shaped center stone surrounded by a halo of smaller diamonds. The diamond is set in a 14k white gold setting and is the focal point of the image, with a plain white background providing a clean and crisp backdrop for the diamond. the diamond appears to be of high quality, with no visible imperfections or imperfections, making it a beautiful and elegant piece of jewelry. The overall effect is one of sophistication and elegance, perfect for any special occasion.",
-      "text_1": "A round brilliant cut diamond in the center of a halo of smaller diamonds surrounding it, set in a 14k white gold engagement ring. the diamond is the focal point of the image, surrounded by a double halo setting, which gives it a classic and elegant look. The diamond appears to be of high quality, with no visible imperfections or imperfections, making it a perfect choice for a special occasion. the setting is delicate and intricate, with small diamonds scattered throughout the halo, adding to the overall elegance and sophistication of the piece.",
-      "text_2": "A close-up of a diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a double halo of smaller diamonds. the diamond is set in a 14k white gold band with a delicate filigree design around the edges, giving it a unique and elegant look. The center diamond is the focal point of the image, with the smaller diamonds surrounding it in a symmetrical pattern, creating a beautiful contrast. the diamonds sparkle brilliantly against the white background, making the ring stand out even more. the overall design of the ring is elegant and sophisticated, making it a perfect choice for a special occasion.",
-      "text_3": "A close-up of a diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a halo of smaller diamonds. The diamond is set in a prong setting and is set on a 14k white gold band with a delicate filigree design along the edges. The center stone is round and appears to be a solitaire, with a total carat weight of approximately 1.50 carats. The diamonds are arranged in a symmetrical pattern around the center stone, with smaller diamonds on either side, creating a marquise shape. the setting is detailed with a milgrain pattern, giving the ring a classic and elegant look. the background of the image is plain white, allowing the diamond to stand out and be the main focus. the overall design of the ring is simple yet elegant, making it a perfect choice for a special occasion.",
-      "text_4": "A close-up of a diamond engagement ring with a round brilliant cut diamond in the center, surrounded by a halo of smaller diamonds on either side. the diamond is set in a 14k white gold band and is the focal point of the image, set against a plain white background. the ring has a classic and elegant design, with a smooth and polished finish that reflects the light. The center stone is round and appears to be a brilliant cut, with no visible imperfections or imperfections. the diamonds are arranged in a symmetrical pattern around the halo, creating a double halo effect. the overall effect is one of sophistication and elegance, making the ring a perfect choice for any special occasion.",
-      "text_5": "A close-up of a white gold engagement ring with a round brilliant cut diamond in the center. The diamond is surrounded by a halo of smaller diamonds on either side, creating a double halo effect. The band of the ring is thin and delicate, with a slight curve at the top for added comfort. The setting appears to be polished and has a polished finish, giving it a classic and timeless look. the background of the image is plain white, making the ring stand out.",
-      "text_6": "A close-up of a white gold wedding ring with a curved design, featuring five round brilliant cut diamonds set in a prong setting. The diamonds are arranged in a row, with the largest diamond at the top and the smallest at the bottom, creating a row of smaller diamonds along the edge of the band. the band is polished and has a smooth, polished finish, reflecting the light and creating a reflection on its surface. the background is plain white, making the ring stand out in the center of the image.",
-      "text_7": "A close-up of a polished silver bangle bracelet on a white background. The bangle is curved and smooth, with a smooth, polished surface that reflects light and creates a subtle shadow effect. The silver color of the bangle stands out against the plain white background, making it the focal point of the image. The bracelet appears to be made of sterling silver and has a polished finish, giving it a sleek and elegant look.",
-      "text_8": "A black and white photograph of a thin, curved object on a plain white background. The object appears to be made of stainless steel and has a smooth, polished surface. It is positioned in the center of the image, with no other objects or objects in the frame. the object has a slight curve, giving it a smooth and polished appearance. The background is a solid white color, providing a stark contrast to the object.",
       "text": [
         "1779",
         2
@@ -1119,7 +1095,7 @@
     },
     "class_type": "ShowText|pysssss",
     "_meta": {
-      "title": "Show Text 🐍"
+      "title": "Show Text рџђЌ"
     }
   },
   "2813": {
@@ -1161,12 +1137,12 @@
     },
     "class_type": "ImprovedFlorenceStitcher",
     "_meta": {
-      "title": "Stable Contusion 💋 Florence Stitcher"
+      "title": "Stable Contusion рџ’‹ Florence Stitcher"
     }
   },
   "2821": {
     "inputs": {
-      "confidence_threshold": 0.2,
+      "confidence_threshold": 0.20000000000000004,
       "task": "dense_region_caption",
       "text_input": "",
       "preprocessing_strategy": "Skip Detection",
@@ -1192,7 +1168,7 @@
     },
     "class_type": "ImprovedFlorenceDetector",
     "_meta": {
-      "title": "Stable Contusion 💋 Florence Detector"
+      "title": "Stable Contusion рџ’‹ Florence Detector"
     }
   },
   "2822": {
@@ -1221,7 +1197,7 @@
     },
     "class_type": "ImprovedFlorenceStitcher",
     "_meta": {
-      "title": "Stable Contusion 💋 Florence Stitcher"
+      "title": "Stable Contusion рџ’‹ Florence Stitcher"
     }
   },
   "2823": {
@@ -1286,7 +1262,7 @@
     },
     "class_type": "StableContusionBatchSaver",
     "_meta": {
-      "title": "Stable Contusion 💋 Batch Saver"
+      "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   },
   "2828": {
@@ -1314,7 +1290,7 @@
     },
     "class_type": "StableContusionBatchSaver",
     "_meta": {
-      "title": "Stable Contusion 💋 Batch Saver"
+      "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   }
 }
