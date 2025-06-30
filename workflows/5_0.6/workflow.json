@@ -17,7 +17,7 @@
       "task": "more_detailed_caption",
       "fill_mask": true,
       "keep_model_loaded": false,
-      "max_new_tokens": 1025,
+      "max_new_tokens": 1024,
       "num_beams": 3,
       "do_sample": true,
       "output_mask_select": "",
@@ -45,8 +45,8 @@
   "1793": {
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "1809",
         0
@@ -117,7 +117,7 @@
   },
   "1827": {
     "inputs": {
-      "float": 2
+      "float": 2.0000000000000004
     },
     "class_type": "Primitive float [Crystools]",
     "_meta": {
@@ -255,7 +255,7 @@
     "inputs": {
       "lora_name": "big melt/melt_LF_no_g_v1-000018.safetensors",
       "strength_model": 1.0000000000000002,
-      "strength_clip": 1,
+      "strength_clip": 1.0000000000000002,
       "model": [
         "2745",
         0
@@ -369,15 +369,6 @@
   },
   "2633": {
     "inputs": {
-      "text_0": "melt, small black mesh bag with a knot tied at the top. The bag appears to be made of a mesh material and has a rectangular shape with rounded edges. The knot is tied in the center of the bag, creating a neat and tidy appearance. the background is a plain, light-colored textured surface, providing a subtle contrast to the dark mesh. the overall mood of the image is minimalistic and minimalistic, with a focus on the texture of the mesh and the knot.",
-      "text_1": "melt, single strand of white pearls with a silver clasp. The pearls are arranged in a symmetrical pattern, with each pearl slightly overlapping the one below it. the pearls have a smooth, glossy texture and are of varying sizes, with some being larger than others. the clasp is made of silver and is attached to a thin silver chain that runs along the length of the pearl strand. the background is a textured, light grey fabric with a subtle sheen, providing a subtle contrast to the pearl beads. the overall aesthetic of the image is elegant and sophisticated.",
-      "text_2": "melt, single strand of white pearls with a black tassel attached to a black mesh pouch. the pearls are round and smooth, reflecting the light and creating a glossy finish. The pouch is rectangular in shape and has a smooth texture. the background is a neutral gray textured surface, providing a subtle contrast to the pearl beads. the overall aesthetic is minimalistic and elegant.",
-      "text_3": "melt, single strand of white pearls on a black ribbon. the pearls are round and smooth, with a glossy finish, and are arranged in a symmetrical pattern along the length of the ribbon. The ribbon is draped elegantly over a plain, textured gray fabric background, creating a subtle contrast between the two colors. the fabric appears to be lightweight and has a subtle sheen, giving it a luxurious feel. the pearl beads are evenly spaced and vary in size, with some being larger than others. the overall effect is elegant and sophisticated, making it a perfect accessory for any outfit.",
-      "text_4": "melt, silver necklace with a pendant featuring white pearls and sparkling diamonds. the pendant is in the shape of a heart with the word \"love\" written in a cursive font. the pearls are round and smooth, and the diamonds are set in a zirconia-like setting. the necklace is draped over a dark fabric background, which provides a subtle contrast to the delicate silver chain. the overall look is elegant and sophisticated, perfect for any special occasion.",
-      "text_5": "melt, single strand of white pearls on a black mesh background. the pearls are round and smooth, with a silver clasp at the end. The beads are arranged in a symmetrical pattern, with the larger pearls at the center and the smaller ones at the edges. the background is a textured, neutral-colored fabric with a subtle sheen, providing a subtle contrast to the pearl beads. the overall aesthetic of the image is minimalistic and elegant.",
-      "text_6": "melt, single strand of white pearls on a gray textured surface, with a black mesh pouch on the right side. the pearls are round and smooth, reflecting the light and creating a shiny appearance. the pouch is rectangular in shape and has a smooth, glossy finish. the background is a plain, light-colored fabric with a subtle sheen, providing a subtle contrast to the pearl beads and pouch. the overall aesthetic of the image is minimalistic and elegant, with no other objects or embellishments present.",
-      "text_7": "melt, single strand of white pearls with a silver clasp. The pearls are round and smooth, with a glossy finish. The clasp is attached to the pearls, which are secured with a metal hook. the background is a textured fabric with a subtle sheen, providing a contrast to the pearl beads. the overall effect is elegant and sophisticated.",
-      "text_8": "melt, A black mesh bag with a metal ring on the left side of the image. The bag appears to be made of a mesh material and has a small opening on the right side. The background is a plain, light grey color with a subtle speckled texture. The image is taken from a top-down perspective, looking down on the bag and the fabric.",
       "text": [
         "2634",
         0
@@ -653,7 +644,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -844,7 +835,7 @@
       "base_blend_mode": "gaussian",
       "blend_strength": 1,
       "debug_mode": "none",
-      "completeness_threshold": 0.98,
+      "completeness_threshold": 0.9800000000000002,
       "edge_blur_size": 2,
       "min_reliable_area": 10,
       "tiles": [
@@ -906,7 +897,7 @@
     "inputs": {
       "grid_cols": 5,
       "grid_rows": 5,
-      "overlap_pixels": 256,
+      "overlap_pixels": 32,
       "image": [
         "2821",
         0
@@ -943,7 +934,6 @@
   },
   "2760": {
     "inputs": {
-      "text": "696",
       "anything": [
         "2758",
         0
@@ -960,7 +950,7 @@
       "start_percent": 0,
       "end_percent": 0.7000000000000002,
       "positive": [
-        "2711",
+        "2824",
         0
       ],
       "negative": [
@@ -1047,7 +1037,6 @@
   },
   "2807": {
     "inputs": {
-      "text": "912",
       "anything": [
         "2758",
         1
@@ -1072,8 +1061,8 @@
       "apply_mask2_to_layer": 2,
       "apply_mask3_to_layer": 3,
       "add_fill_layer": false,
-      "fill_layer_name": "-",
-      "fill_color_hex": "-",
+      "fill_layer_name": "Fill Layer",
+      "fill_color_hex": "#242424",
       "output_directory": "psd_output",
       "layer1_name": "V1",
       "layer2_name": "V2",
@@ -1099,15 +1088,6 @@
   },
   "2812": {
     "inputs": {
-      "text_0": "A close-up of a small black mesh bag with a knot tied at the top. The bag appears to be made of a mesh material and has a rectangular shape with rounded edges. The knot is tied in the center of the bag, creating a neat and tidy appearance. the background is a plain, light-colored textured surface, providing a subtle contrast to the dark mesh. the overall mood of the image is minimalistic and minimalistic, with a focus on the texture of the mesh and the knot.",
-      "text_1": "A close-up of a single strand of white pearls with a silver clasp. The pearls are arranged in a symmetrical pattern, with each pearl slightly overlapping the one below it. the pearls have a smooth, glossy texture and are of varying sizes, with some being larger than others. the clasp is made of silver and is attached to a thin silver chain that runs along the length of the pearl strand. the background is a textured, light grey fabric with a subtle sheen, providing a subtle contrast to the pearl beads. the overall aesthetic of the image is elegant and sophisticated.",
-      "text_2": "A close-up of a single strand of white pearls with a black tassel attached to a black mesh pouch. the pearls are round and smooth, reflecting the light and creating a glossy finish. The pouch is rectangular in shape and has a smooth texture. the background is a neutral gray textured surface, providing a subtle contrast to the pearl beads. the overall aesthetic is minimalistic and elegant.",
-      "text_3": "A close-up of a single strand of white pearls on a black ribbon. the pearls are round and smooth, with a glossy finish, and are arranged in a symmetrical pattern along the length of the ribbon. The ribbon is draped elegantly over a plain, textured gray fabric background, creating a subtle contrast between the two colors. the fabric appears to be lightweight and has a subtle sheen, giving it a luxurious feel. the pearl beads are evenly spaced and vary in size, with some being larger than others. the overall effect is elegant and sophisticated, making it a perfect accessory for any outfit.",
-      "text_4": "A close-up of a silver necklace with a pendant featuring white pearls and sparkling diamonds. the pendant is in the shape of a heart with the word \"love\" written in a cursive font. the pearls are round and smooth, and the diamonds are set in a zirconia-like setting. the necklace is draped over a dark fabric background, which provides a subtle contrast to the delicate silver chain. the overall look is elegant and sophisticated, perfect for any special occasion.",
-      "text_5": "A close-up of a single strand of white pearls on a black mesh background. the pearls are round and smooth, with a silver clasp at the end. The beads are arranged in a symmetrical pattern, with the larger pearls at the center and the smaller ones at the edges. the background is a textured, neutral-colored fabric with a subtle sheen, providing a subtle contrast to the pearl beads. the overall aesthetic of the image is minimalistic and elegant.",
-      "text_6": "A close-up of a single strand of white pearls on a gray textured surface, with a black mesh pouch on the right side. the pearls are round and smooth, reflecting the light and creating a shiny appearance. the pouch is rectangular in shape and has a smooth, glossy finish. the background is a plain, light-colored fabric with a subtle sheen, providing a subtle contrast to the pearl beads and pouch. the overall aesthetic of the image is minimalistic and elegant, with no other objects or embellishments present.",
-      "text_7": "A close-up of a single strand of white pearls with a silver clasp. The pearls are round and smooth, with a glossy finish. The clasp is attached to the pearls, which are secured with a metal hook. the background is a textured fabric with a subtle sheen, providing a contrast to the pearl beads. the overall effect is elegant and sophisticated.",
-      "text_8": "A black mesh bag with a metal ring on the left side of the image. The bag appears to be made of a mesh material and has a small opening on the right side. The background is a plain, light grey color with a subtle speckled texture. The image is taken from a top-down perspective, looking down on the bag and the fabric.",
       "text": [
         "1779",
         2
@@ -1162,21 +1142,15 @@
   },
   "2821": {
     "inputs": {
-      "confidence_threshold": 0.2,
+      "confidence_threshold": 0.20000000000000004,
       "task": "dense_region_caption",
       "text_input": "",
       "preprocessing_strategy": "Skip Detection",
       "target_preprocess_size": 768,
-      "min_size": true,
-      "use_image_for_padding": "",
+      "use_image_for_padding": true,
       "exclude_objects": "",
-      "include_only": "false",
-      "combine_objects": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "include_only": "",
+      "combine_objects": "false",
       "speak_and_recognation": {
         "__value__": [
           false,
@@ -1244,7 +1218,26 @@
       "title": "Happyin Word Replacer (Jewelry)"
     }
   },
-  "2825": {
+  "2824": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "1811",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "2827": {
     "inputs": {
       "filenames": [
         "2583",
@@ -1259,7 +1252,7 @@
       "quality": 100,
       "metadata": "",
       "images": [
-        "2820",
+        "2822",
         1
       ],
       "alpha_masks": [
@@ -1287,7 +1280,7 @@
       "quality": 100,
       "metadata": "",
       "images": [
-        "2822",
+        "2820",
         1
       ],
       "alpha_masks": [
