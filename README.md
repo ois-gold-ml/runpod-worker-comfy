@@ -48,6 +48,7 @@
     - [Local API](#local-api)
       - [Access the local Worker API](#access-the-local-worker-api)
       - [Access local ComfyUI](#access-local-comfyui)
+      - [Access Jupyter Lab](#access-jupyter-lab)
   - [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
   - [Acknowledgments](#acknowledgments)
 
@@ -95,6 +96,7 @@
 | `WORKFLOW_FILE`                  | Path to the workflow JSON file that will be used for processing images.                                                                                                               | `/workflow.json` |
 | `DRY_MODE`                       | When enabled, skips ComfyUI processing and just passes through images. Useful for testing.                                                                                            | `false`    |
 | `SERVE_API_LOCALLY`              | Enable local API server for development and testing.                                                                                                                                  | disabled   |
+| `JUPYTER_TOKEN`                  | Token for Jupyter Lab authentication. Jupyter Lab will only start when `SERVE_API_LOCALLY=true` and this token is provided.                                                         | disabled   |
 | `LOG_LEVEL`                      | Logging verbosity level. Set to `debug` for detailed logs including ComfyUI history output.                                                                                           | `info`     |
 
 ### Upload image to AWS S3
@@ -489,6 +491,17 @@ docker-compose up
 #### Access local ComfyUI
 
 - With the local API server running, you can access ComfyUI at: [localhost:8188](http://localhost:8188)
+
+#### Access Jupyter Lab
+
+- **Jupyter Lab is available for local development when both `SERVE_API_LOCALLY=true` and `JUPYTER_TOKEN` are set**
+- With Jupyter Lab enabled, you can access it at: [localhost:8888](http://localhost:8888)
+- Use the token you specified in `JUPYTER_TOKEN` to authenticate
+
+**Example with Jupyter Lab:**
+```bash
+docker run -e SERVE_API_LOCALLY=true -e JUPYTER_TOKEN="my-secure-token" your-image
+```
 
 > [!NOTE]
 >

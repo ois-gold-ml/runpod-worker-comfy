@@ -121,6 +121,9 @@ RUN pip3 install --upgrade pip setuptools wheel watchdog
 # required for happyin image describer
 RUN pip3 install ollama
 
+# Install Jupyter Lab for local development when SERVE_API_LOCALLY=true
+RUN pip3 install jupyterlab
+
 # Copy file structure from test stage
 COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
