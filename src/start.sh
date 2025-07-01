@@ -16,7 +16,7 @@ if [ "$SERVE_API_LOCALLY" == "true" ]; then
     if [ -n "$JUPYTER_TOKEN" ]; then
         echo "runpod-worker-comfy: Starting Jupyter Lab"
         echo "runpod-worker-comfy: Jupyter Lab will be available at http://localhost:8888 with token: $JUPYTER_TOKEN"
-        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token="$JUPYTER_TOKEN" --notebook-dir=/workspace &
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token="$JUPYTER_TOKEN" --notebook-dir=/ &
     else
         echo "runpod-worker-comfy: Jupyter Lab not started (JUPYTER_TOKEN not provided)"
     fi
