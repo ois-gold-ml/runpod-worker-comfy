@@ -131,11 +131,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.os.path.getsize")
     @patch("rp_handler.os.remove")
-    @patch("rp_handler.tus_client.TusClient")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_process_output_images_with_upload_url_parameter(self, mock_tus_client, mock_remove, mock_getsize, mock_exists, mock_walk):
+    def test_process_output_images_with_upload_url_parameter(self, mock_remove, mock_getsize, mock_exists, mock_walk):
         """Test that process_output_images correctly scans directory and uploads files."""
         # Mock directory walking to return test files
         mock_walk.return_value = [
@@ -146,10 +145,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_exists.return_value = True
         mock_getsize.return_value = 1024
         
+        # Reset the global mock and configure it
+        rp_handler.tus_client.reset_mock()
+        
         # Mock TUS client uploader
         mock_uploader = MagicMock()
         mock_uploader.url = "http://example.com/tus/uploaded_file"
-        mock_tus_client.return_value.uploader.return_value = mock_uploader
+        rp_handler.tus_client.TusClient.return_value.uploader.return_value = mock_uploader
         
         # Test data
         job_id = "test_job"
@@ -159,10 +161,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         result = rp_handler.process_output_images(job_id, upload_url)
         
         # Verify TUS client was created with the correct upload_url
-        mock_tus_client.assert_called_with(upload_url)
+        rp_handler.tus_client.TusClient.assert_called_with(upload_url)
         
         # Verify uploader was created for both files and upload was called
-        self.assertEqual(mock_tus_client.return_value.uploader.call_count, 2)
+        self.assertEqual(rp_handler.tus_client.TusClient.return_value.uploader.call_count, 2)
         mock_uploader.upload.assert_called()
         
         # Verify both files were removed after upload
@@ -175,11 +177,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     @patch("rp_handler.os.walk")
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.os.path.getsize")
-    @patch("rp_handler.tus_client.TusClient")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_process_output_images_upload_fails(self, mock_tus_client, mock_getsize, mock_exists, mock_walk):
+    def test_process_output_images_upload_fails(self, mock_getsize, mock_exists, mock_walk):
         # Mock directory walking to return test files
         mock_walk.return_value = [
             (RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES, [], ["test1.png"])
@@ -189,8 +190,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_exists.return_value = True
         mock_getsize.return_value = 1024
         
+        # Reset the global mock and configure it to fail
+        rp_handler.tus_client.reset_mock()
+        
         # Mock TUS client with upload exception
-        mock_tus_client.return_value.uploader.side_effect = Exception("Upload failed")
+        mock_uploader = MagicMock()
+        mock_uploader.upload.side_effect = Exception("Upload failed")
+        rp_handler.tus_client.TusClient.return_value.uploader.return_value = mock_uploader
         
         # Test data
         job_id = "test_job"

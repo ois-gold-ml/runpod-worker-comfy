@@ -332,7 +332,7 @@ def process_output_images(job_id, upload_url=None):
             relative_path = os.path.relpath(file_path, COMFY_OUTPUT_PATH)
             
             logger.info("Starting file upload", extra={
-                "file_path": relative_path,
+                "file_path": file_path,
                 "file_size_bytes": file_size,
                 "upload_url": upload_url,
                 "job_id": job_id
@@ -351,7 +351,7 @@ def process_output_images(job_id, upload_url=None):
             uploaded_url = uploader.url
             
             logger.info("File uploaded successfully", extra={
-                "file_path": relative_path,
+                "file_path": file_path,
                 "file_size_bytes": file_size,
                 "uploaded_url": uploaded_url,
                 "job_id": job_id
@@ -361,12 +361,12 @@ def process_output_images(job_id, upload_url=None):
             try:
                 os.remove(file_path)
                 logger.info("File removed after upload", extra={
-                    "file_path": relative_path,
+                    "file_path": file_path,
                     "job_id": job_id
                 })
             except OSError as e:
                 logger.warning("Failed to remove file after upload", extra={
-                    "file_path": relative_path,
+                    "file_path": file_path,
                     "error": str(e),
                     "job_id": job_id
                 })
