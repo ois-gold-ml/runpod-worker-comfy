@@ -138,12 +138,11 @@ COPY --from=file-operations-test /start.sh /restore_snapshot.sh /rp_handler.py /
 # Copy and extract custom_nodes.tar.gz
 COPY happyin/custom_nodes.tar.gz /tmp/custom_nodes.tar.gz
 RUN cd /tmp && \
-    echo "Checking file type and size..." && \
-    file custom_nodes.tar.gz && \
+    echo "Checking file size..." && \
     ls -la custom_nodes.tar.gz && \
-    echo "Attempting to extract..." && \
+    echo "Testing tar file..." && \
     tar -tf custom_nodes.tar.gz > /dev/null && \
-    echo "File listing successful, proceeding with extraction..." && \
+    echo "Extracting custom nodes..." && \
     tar -xf custom_nodes.tar.gz && \
     cp -r ComfyUI/custom_nodes/* /comfyui/custom_nodes/ && \
     rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI
