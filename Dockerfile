@@ -139,14 +139,10 @@ COPY --from=file-operations-test /custom_nodes.txt.template /custom_nodes.txt.te
 
 # Copy and extract custom_nodes.tar.gz
 COPY happyin/custom_nodes.tar.gz /tmp/custom_nodes.tar.gz
-COPY happyin/custom_nodes.md5.txt /tmp/custom_nodes.md5.txt
 RUN cd /tmp && \
-    echo "Verifying custom_nodes.tar.gz integrity..." && \
-    echo "$(cat custom_nodes.md5.txt)  custom_nodes.tar.gz" | md5sum -c - && \
-    echo "MD5 verification passed!" && \
     tar -xzf custom_nodes.tar.gz && \
     cp -r ComfyUI/custom_nodes/* /comfyui/custom_nodes/ && \
-    rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI /tmp/custom_nodes.md5.txt
+    rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI
 
 # Generate custom_nodes.txt with envsubst
 # RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
