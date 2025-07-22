@@ -77,6 +77,40 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertIsNotNone(error)
         self.assertEqual(error, "Please provide input")
 
+    def test_get_mime_type_known_extensions(self):
+        """Test MIME type detection for known file extensions."""
+        test_cases = [
+            ("test.png", "image/png"),
+            ("test.jpg", "image/jpeg"),
+            ("test.jpeg", "image/jpeg"),
+            ("test.gif", "image/gif"),
+            ("test.txt", "text/plain"),
+            ("test.pdf", "application/pdf"),
+            ("test.mp4", "video/mp4"),
+            ("test.webp", "image/webp")
+        ]
+        
+        for filename, expected_mime in test_cases:
+            with self.subTest(filename=filename):
+                result = rp_handler.get_mime_type(filename)
+                self.assertEqual(result, expected_mime)
+
+    def test_get_mime_type_unknown_extension(self):
+        """Test MIME type detection for unknown file extensions."""
+        result = rp_handler.get_mime_type("test.unknownext")
+        self.assertEqual(result, "application/octet-stream")
+
+    def test_get_mime_type_no_extension(self):
+        """Test MIME type detection for files without extensions."""
+        result = rp_handler.get_mime_type("filename_no_ext")
+        self.assertEqual(result, "application/octet-stream")
+
+    def test_get_mime_type_psd_file(self):
+        """Test MIME type detection for PSD files specifically."""
+        result = rp_handler.get_mime_type("artwork.psd")
+        # PSD files might be detected as image/vnd.adobe.photoshop or fall back to application/octet-stream
+        self.assertIn(result, ["image/vnd.adobe.photoshop", "application/octet-stream"])
+
     @patch("rp_handler.requests.get")
     def test_check_server_server_up(self, mock_requests):
         mock_response = MagicMock()
@@ -131,11 +165,12 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.os.path.getsize")
     @patch("rp_handler.os.remove")
+    @patch("rp_handler.get_mime_type")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_process_output_images_with_upload_url_parameter(self, mock_remove, mock_getsize, mock_exists, mock_walk):
-        """Test that process_output_images correctly scans directory and uploads files."""
+    def test_process_output_images_with_upload_url_parameter(self, mock_get_mime_type, mock_remove, mock_getsize, mock_exists, mock_walk):
+        """Test that process_output_images correctly scans directory and uploads files with MIME type headers."""
         # Mock directory walking to return test files
         mock_walk.return_value = [
             (RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES, [], ["test1.png", "test2.jpg"])
@@ -145,13 +180,18 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_exists.return_value = True
         mock_getsize.return_value = 1024
         
+        # Mock MIME type detection
+        mock_get_mime_type.side_effect = ["image/png", "image/jpeg"]
+        
         # Reset the global mock and configure it
         rp_handler.tus_client.reset_mock()
         
-        # Mock TUS client uploader
+        # Mock TUS client and uploader
+        mock_tus_client = MagicMock()
         mock_uploader = MagicMock()
         mock_uploader.url = "http://example.com/tus/uploaded_file"
-        rp_handler.tus_client.TusClient.return_value.uploader.return_value = mock_uploader
+        mock_tus_client.uploader.return_value = mock_uploader
+        rp_handler.tus_client.TusClient.return_value = mock_tus_client
         
         # Test data
         job_id = "test_job"
@@ -163,8 +203,15 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Verify TUS client was created with the correct upload_url
         rp_handler.tus_client.TusClient.assert_called_with(upload_url)
         
+        # Verify set_headers was called with MIME types
+        expected_calls = [
+            unittest.mock.call({"mimeType": "image/png"}),
+            unittest.mock.call({"mimeType": "image/jpeg"})
+        ]
+        mock_tus_client.set_headers.assert_has_calls(expected_calls, any_order=False)
+        
         # Verify uploader was created for both files and upload was called
-        self.assertEqual(rp_handler.tus_client.TusClient.return_value.uploader.call_count, 2)
+        self.assertEqual(mock_tus_client.uploader.call_count, 2)
         mock_uploader.upload.assert_called()
         
         # Verify both files were removed after upload
@@ -177,10 +224,11 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     @patch("rp_handler.os.walk")
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.os.path.getsize")
+    @patch("rp_handler.get_mime_type")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_process_output_images_upload_fails(self, mock_getsize, mock_exists, mock_walk):
+    def test_process_output_images_upload_fails(self, mock_get_mime_type, mock_getsize, mock_exists, mock_walk):
         # Mock directory walking to return test files
         mock_walk.return_value = [
             (RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES, [], ["test1.png"])
@@ -190,13 +238,18 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_exists.return_value = True
         mock_getsize.return_value = 1024
         
+        # Mock MIME type detection
+        mock_get_mime_type.return_value = "image/png"
+        
         # Reset the global mock and configure it to fail
         rp_handler.tus_client.reset_mock()
         
         # Mock TUS client with upload exception
+        mock_tus_client = MagicMock()
         mock_uploader = MagicMock()
         mock_uploader.upload.side_effect = Exception("Upload failed")
-        rp_handler.tus_client.TusClient.return_value.uploader.return_value = mock_uploader
+        mock_tus_client.uploader.return_value = mock_uploader
+        rp_handler.tus_client.TusClient.return_value = mock_tus_client
         
         # Test data
         job_id = "test_job"
@@ -208,6 +261,9 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Assertions
         self.assertEqual(result["status"], "error")
         self.assertIn("Error uploading file test1.png using TUS protocol", result["message"])
+        
+        # Verify MIME type header was still set
+        mock_tus_client.set_headers.assert_called_with({"mimeType": "image/png"})
 
     @patch("rp_handler.os.path.exists")
     @patch.dict(
@@ -269,6 +325,73 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Assertions
         self.assertEqual(result["status"], "error")
         self.assertIn("Output directory does not exist", result["message"])
+
+    @patch("rp_handler.os.walk")
+    @patch("rp_handler.os.path.exists")
+    @patch("rp_handler.os.path.getsize")
+    @patch("rp_handler.os.remove")
+    @patch("rp_handler.get_mime_type")
+    @patch.dict(
+        os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
+    )
+    def test_process_output_images_mixed_file_types(self, mock_get_mime_type, mock_remove, mock_getsize, mock_exists, mock_walk):
+        """Test that mixed file types (PSD, PNG, TXT) are handled with correct MIME types."""
+        # Mock directory walking to return mixed file types
+        mock_walk.return_value = [
+            (RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES, [], ["artwork.psd", "layer1.png", "layer2.png", "metadata.txt"])
+        ]
+        
+        # Mock file exists and size
+        mock_exists.return_value = True
+        mock_getsize.return_value = 1024
+        
+        # Mock MIME type detection for mixed file types
+        mock_get_mime_type.side_effect = [
+            "image/vnd.adobe.photoshop",  # .psd
+            "image/png",                  # .png
+            "image/png",                  # .png
+            "text/plain"                  # .txt
+        ]
+        
+        # Reset the global mock and configure it
+        rp_handler.tus_client.reset_mock()
+        
+        # Mock TUS client and uploader
+        mock_tus_client = MagicMock()
+        mock_uploader = MagicMock()
+        mock_uploader.url = "http://example.com/tus/uploaded_file"
+        mock_tus_client.uploader.return_value = mock_uploader
+        rp_handler.tus_client.TusClient.return_value = mock_tus_client
+        
+        # Test data
+        job_id = "test_job"
+        upload_url = "http://example.com/tus" 
+        
+        # Call the function directly
+        result = rp_handler.process_output_images(job_id, upload_url)
+        
+        # Verify TUS client was created with the correct upload_url
+        rp_handler.tus_client.TusClient.assert_called_with(upload_url)
+        
+        # Verify set_headers was called with correct MIME types for each file
+        expected_calls = [
+            unittest.mock.call({"mimeType": "image/vnd.adobe.photoshop"}),
+            unittest.mock.call({"mimeType": "image/png"}),
+            unittest.mock.call({"mimeType": "image/png"}),
+            unittest.mock.call({"mimeType": "text/plain"})
+        ]
+        mock_tus_client.set_headers.assert_has_calls(expected_calls, any_order=False)
+        
+        # Verify uploader was created for all 4 files and upload was called
+        self.assertEqual(mock_tus_client.uploader.call_count, 4)
+        self.assertEqual(mock_uploader.upload.call_count, 4)
+        
+        # Verify all 4 files were removed after upload
+        self.assertEqual(mock_remove.call_count, 4)
+        
+        # Verify the result contains the expected values
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["uploaded_count"], 4)
 
     def test_handler_without_upload_url(self):
         # Setup mock to pass validation but with error about missing output

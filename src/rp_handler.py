@@ -9,6 +9,7 @@ import uuid
 import logging
 import sys
 import glob
+import mimetypes
 from io import BytesIO
 from tusclient import client as tus_client
 from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
@@ -267,6 +268,23 @@ def get_history(prompt_id):
         return json.loads(response.read())
 
 
+def get_mime_type(file_path):
+    """
+    Get the MIME type of a file based on its extension.
+    
+    Args:
+        file_path (str): The path to the file.
+        
+    Returns:
+        str: The MIME type of the file, defaults to 'application/octet-stream' if unknown.
+    """
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        # Default to application/octet-stream for unknown file types
+        mime_type = 'application/octet-stream'
+    return mime_type
+
+
 def process_output_images(job_id, upload_url=None):
     """
     This function scans the output directory for all files and uploads them using the TUS protocol.
@@ -331,15 +349,20 @@ def process_output_images(job_id, upload_url=None):
             file_size = os.path.getsize(file_path)
             relative_path = os.path.relpath(file_path, COMFY_OUTPUT_PATH)
             
+            # Detect MIME type
+            mime_type = get_mime_type(file_path)
+            
             logger.info("Starting file upload", extra={
                 "file_path": file_path,
                 "file_size_bytes": file_size,
+                "mime_type": mime_type,
                 "upload_url": upload_url,
                 "job_id": job_id
             })
 
-            # Create a TUS client
+            # Create a TUS client with mimeType header
             my_client = tus_client.TusClient(upload_url)
+            my_client.set_headers({"mimeType": mime_type})
             
             # Set up the uploader
             uploader = my_client.uploader(file_path, chunk_size=5*1024*1024)
@@ -353,6 +376,7 @@ def process_output_images(job_id, upload_url=None):
             logger.info("File uploaded successfully", extra={
                 "file_path": file_path,
                 "file_size_bytes": file_size,
+                "mime_type": mime_type,
                 "uploaded_url": uploaded_url,
                 "job_id": job_id
             })
@@ -420,8 +444,12 @@ def process_dry_mode(input_url, upload_url):
         # Record the start time for tracking
         start_time = time.time()
 
-        # Create a TUS client
+        # Detect MIME type
+        mime_type = get_mime_type(temp_filename)
+
+        # Create a TUS client with mimeType header
         my_client = tus_client.TusClient(upload_url)
+        my_client.set_headers({"mimeType": mime_type})
 
         try:
             # Wait for 5 seconds before uploading
@@ -429,7 +457,10 @@ def process_dry_mode(input_url, upload_url):
             time.sleep(5)
             
             # Set up the uploader with proper file handling
-            logger.info("Uploading image using TUS protocol in dry mode", extra={"upload_url": upload_url})
+            logger.info("Uploading image using TUS protocol in dry mode", extra={
+                "upload_url": upload_url,
+                "mime_type": mime_type
+            })
             
             # Use context manager to ensure file is properly closed
             with open(temp_filename, 'rb') as file_obj:
@@ -439,7 +470,10 @@ def process_dry_mode(input_url, upload_url):
             
             # Calculate total processing time
             total_time = time.time() - start_time
-            logger.info("Image uploaded successfully in dry mode", extra={"total_time_seconds": round(total_time, 2)})
+            logger.info("Image uploaded successfully in dry mode", extra={
+                "total_time_seconds": round(total_time, 2),
+                "mime_type": mime_type
+            })
             
             return {
                 "status": "success"
