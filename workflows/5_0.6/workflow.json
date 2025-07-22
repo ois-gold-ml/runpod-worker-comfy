@@ -21,13 +21,7 @@
       "num_beams": 3,
       "do_sample": true,
       "output_mask_select": "",
-      "seed": 444783528638671,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "seed": 125074300554618,
       "image": [
         "2499",
         0
@@ -81,13 +75,7 @@
   },
   "1804": {
     "inputs": {
-      "text": "melt ",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      "text": "melt "
     },
     "class_type": "ttN text",
     "_meta": {
@@ -279,6 +267,10 @@
         0
       ],
       "text_b": [
+        "2830",
+        0
+      ],
+      "text_c": [
         "2823",
         0
       ]
@@ -294,7 +286,7 @@
         "1827",
         0
       ],
-      "seed": 1099182055793469,
+      "seed": 393018957277376,
       "steps": 5,
       "cfg": 2,
       "sampler_name": "euler",
@@ -348,15 +340,30 @@
       "title": "Ultimate SD Upscale"
     }
   },
+  "2631": {
+    "inputs": {
+      "clip_l": [
+        "2634",
+        0
+      ],
+      "t5xxl": [
+        "2634",
+        0
+      ],
+      "guidance": 3.5,
+      "clip": [
+        "1811",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncodeFlux",
+    "_meta": {
+      "title": "CLIPTextEncodeFlux"
+    }
+  },
   "2632": {
     "inputs": {
       "text": "blurry, dust",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "1811",
         0
@@ -454,17 +461,7 @@
   },
   "2644": {
     "inputs": {
-      "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "a": [
-        "2649",
-        0
-      ],
+      "expression": "2*b",
       "b": [
         "2646",
         1
@@ -477,17 +474,7 @@
   },
   "2645": {
     "inputs": {
-      "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "a": [
-        "2649",
-        0
-      ],
+      "expression": "2*b",
       "b": [
         "2646",
         0
@@ -508,15 +495,6 @@
     "class_type": "GetImageSize+",
     "_meta": {
       "title": "рџ”§ Get Image Size"
-    }
-  },
-  "2649": {
-    "inputs": {
-      "value": 2
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int"
     }
   },
   "2660": {
@@ -550,12 +528,6 @@
   "2667": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         0
@@ -569,12 +541,6 @@
   "2668": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         1
@@ -619,6 +585,36 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "Preview Image"
+    }
+  },
+  "2700": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_zaxkr_00003_.png&type=temp&subfolder=&rand=0.8172563829998878"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_zaxkr_00004_.png&type=temp&subfolder=&rand=0.8356861973098902"
+          }
+        ]
+      },
+      "image_a": [
+        "2583",
+        0
+      ],
+      "image_b": [
+        "2820",
+        1
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
     }
   },
   "2703": {
@@ -688,12 +684,6 @@
         0
       ],
       "guidance": 3.5,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -707,12 +697,6 @@
   "2712": {
     "inputs": {
       "text": "blurry, dust, scratched",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -758,7 +742,7 @@
         "1827",
         0
       ],
-      "seed": 1099182055793469,
+      "seed": 441039912967493,
       "steps": 5,
       "cfg": 2,
       "sampler_name": "euler",
@@ -884,6 +868,36 @@
       "title": "Stable Contusion рџ’‹ Batch Collapser"
     }
   },
+  "2741": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_rydpe_00003_.png&type=temp&subfolder=&rand=0.0653703403135022"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_rydpe_00004_.png&type=temp&subfolder=&rand=0.735926716981408"
+          }
+        ]
+      },
+      "image_a": [
+        "2583",
+        0
+      ],
+      "image_b": [
+        "2822",
+        1
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
   "2745": {
     "inputs": {
       "unet_name": "flux1-dev-F16.gguf"
@@ -934,6 +948,7 @@
   },
   "2760": {
     "inputs": {
+      "text": "464",
       "anything": [
         "2758",
         0
@@ -950,7 +965,7 @@
       "start_percent": 0,
       "end_percent": 0.7000000000000002,
       "positive": [
-        "2824",
+        "2631",
         0
       ],
       "negative": [
@@ -1012,17 +1027,6 @@
       "title": "Clean VRAM Used"
     }
   },
-  "2804": {
-    "inputs": {
-      "tile_width": 2048,
-      "tile_height": 2048,
-      "overlap_pixels": 8
-    },
-    "class_type": "StableContusionTileCalculator",
-    "_meta": {
-      "title": "Stable Contusion рџ’‹ Tile Calculator"
-    }
-  },
   "2806": {
     "inputs": {
       "anything": [
@@ -1037,6 +1041,7 @@
   },
   "2807": {
     "inputs": {
+      "text": "464",
       "anything": [
         "2758",
         1
@@ -1055,7 +1060,7 @@
       ],
       "folder_structure": [
         "2583",
-        3
+        2
       ],
       "apply_mask1_to_layer": 1,
       "apply_mask2_to_layer": 2,
@@ -1079,6 +1084,10 @@
       "layer2_image": [
         "2822",
         1
+      ],
+      "mask1": [
+        "2583",
+        1
       ]
     },
     "class_type": "StableContusionPsdBatchSaver",
@@ -1096,19 +1105,6 @@
     "class_type": "ShowText|pysssss",
     "_meta": {
       "title": "Show Text рџђЌ"
-    }
-  },
-  "2813": {
-    "inputs": {
-      "channel": "red",
-      "image": [
-        "2583",
-        0
-      ]
-    },
-    "class_type": "ImageToMask",
-    "_meta": {
-      "title": "Convert Image to Mask"
     }
   },
   "2820": {
@@ -1150,13 +1146,7 @@
       "use_image_for_padding": true,
       "exclude_objects": "",
       "include_only": "",
-      "combine_objects": "false",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "combine_objects": false,
       "image": [
         "2583",
         0
@@ -1205,36 +1195,39 @@
       "text": [
         "1779",
         2
-      ],
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      ]
     },
     "class_type": "HappyinWordReplacer",
     "_meta": {
       "title": "Happyin Word Replacer (Jewelry)"
     }
   },
-  "2824": {
+  "2826": {
     "inputs": {
-      "text": "",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "clip": [
-        "1811",
-        0
+      "filenames": [
+        "2583",
+        2
+      ],
+      "folder_structure": [
+        "2583",
+        2
+      ],
+      "extension": "png",
+      "output_directory": "batch_output",
+      "quality": 100,
+      "metadata": "",
+      "images": [
+        "2820",
+        1
+      ],
+      "alpha_masks": [
+        "2583",
+        1
       ]
     },
-    "class_type": "CLIPTextEncode",
+    "class_type": "StableContusionBatchSaver",
     "_meta": {
-      "title": "CLIP Text Encode (Prompt)"
+      "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   },
   "2827": {
@@ -1245,7 +1238,7 @@
       ],
       "folder_structure": [
         "2583",
-        3
+        2
       ],
       "extension": "png",
       "output_directory": "batch_output",
@@ -1265,32 +1258,25 @@
       "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   },
-  "2828": {
+  "2830": {
     "inputs": {
-      "filenames": [
-        "2583",
-        2
-      ],
-      "folder_structure": [
-        "2583",
-        3
-      ],
-      "extension": "png",
-      "output_directory": "batch_output",
-      "quality": 100,
-      "metadata": "",
-      "images": [
-        "2820",
-        1
-      ],
-      "alpha_masks": [
-        "2583",
-        1
-      ]
+      "text": " "
     },
-    "class_type": "StableContusionBatchSaver",
+    "class_type": "ttN text",
     "_meta": {
-      "title": "Stable Contusion рџ’‹ Batch Saver"
+      "title": "text"
+    }
+  },
+  "2831": {
+    "inputs": {
+      "side_length": 896,
+      "side": "Longest",
+      "upscale_method": "lanczos",
+      "crop": "disabled"
+    },
+    "class_type": "DF_Image_scale_to_side",
+    "_meta": {
+      "title": "Image scale to side"
     }
   }
 }

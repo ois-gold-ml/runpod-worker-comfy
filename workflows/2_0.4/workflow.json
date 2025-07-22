@@ -21,13 +21,7 @@
       "num_beams": 3,
       "do_sample": true,
       "output_mask_select": "",
-      "seed": 444783528638671,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "seed": 860555622529749,
       "image": [
         "2499",
         0
@@ -81,13 +75,7 @@
   },
   "1804": {
     "inputs": {
-      "text": "melt ",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      "text": "melt "
     },
     "class_type": "ttN text",
     "_meta": {
@@ -279,6 +267,10 @@
         0
       ],
       "text_b": [
+        "2830",
+        0
+      ],
+      "text_c": [
         "2823",
         0
       ]
@@ -294,7 +286,7 @@
         "1827",
         0
       ],
-      "seed": 1099182055793469,
+      "seed": 1051531895795576,
       "steps": 5,
       "cfg": 2,
       "sampler_name": "euler",
@@ -348,15 +340,30 @@
       "title": "Ultimate SD Upscale"
     }
   },
+  "2631": {
+    "inputs": {
+      "clip_l": [
+        "2634",
+        0
+      ],
+      "t5xxl": [
+        "2634",
+        0
+      ],
+      "guidance": 3.5,
+      "clip": [
+        "1811",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncodeFlux",
+    "_meta": {
+      "title": "CLIPTextEncodeFlux"
+    }
+  },
   "2632": {
     "inputs": {
       "text": "blurry, dust",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "1811",
         0
@@ -369,6 +376,10 @@
   },
   "2633": {
     "inputs": {
+      "text_0": "melt, gold hair comb with a stylized design on a white background. the comb is made of metal and has a shiny, metallic finish, giving it a luxurious and elegant look. It is positioned in the center of the image, with the white background providing a stark contrast to the golden color of the comb, making it stand out even more. The comb has a curved shape with a pointed tip and a loop at the top, creating a unique and intricate design. The texture of the metal is smooth and polished, reflecting the light and creating a shimmering effect on the comb's surface.",
+      "text_1": "melt, gold charm with a detailed, glittery texture. The charm is in the shape of a person's profile, with their head facing towards the right side of the image. The person appears to be a woman with curly hair, wearing a flowing dress, and has a serene expression. the charm is attached to a clear plastic loop, which allows it to be easily attached to clothing or accessories. the background is a plain white surface, which provides a stark contrast to the golden color of the charm, making it stand out even more. the overall effect is one of elegance and sophistication, making the charm a perfect accessory for any outfit.",
+      "text_2": "melt, shiny, metallic gold unicorn ornament on a plain white background. the unicorn is positioned in the center of the image, with its full body facing towards the right side of the frame. its mane and tail are flowing in the wind, and its hooves are firmly planted on the ground, giving it a regal and majestic appearance. its shiny texture reflects the light, making it stand out against the plain white surface, creating a striking contrast between the golden color of the unicorn and its surroundings. the ornament appears to be made of metal, with a shiny finish that reflects light and creates a shimmering effect on the surface. the background is simple and uncluttered, allowing the unicorn to stand out prominently in the image. the overall effect is one of elegance and sophistication, perfect for adding a touch of whimsy to any room.",
+      "text_3": "melt, gold-plated brass pendant in the shape of a mythical creature, resembling a dog, on a white background. the pendant is in the center of the image and appears to be made of shiny, metallic gold material, giving it a shiny appearance. the creature is depicted in a standing position, with its legs stretched out and its head turned to the side, giving a sense of movement and energy. its body is elongated and muscular, with a smooth texture that reflects the light, making it stand out against the plain white surface. the image is taken from a slightly elevated angle, focusing on the intricate details of the creature's body, such as its legs, hooves, and tail, which add to its realistic appearance.",
       "text": [
         "2634",
         0
@@ -454,17 +465,7 @@
   },
   "2644": {
     "inputs": {
-      "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "a": [
-        "2649",
-        0
-      ],
+      "expression": "2*b",
       "b": [
         "2646",
         1
@@ -477,17 +478,7 @@
   },
   "2645": {
     "inputs": {
-      "expression": "a*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "a": [
-        "2649",
-        0
-      ],
+      "expression": "2*b",
       "b": [
         "2646",
         0
@@ -508,15 +499,6 @@
     "class_type": "GetImageSize+",
     "_meta": {
       "title": "рџ”§ Get Image Size"
-    }
-  },
-  "2649": {
-    "inputs": {
-      "value": 2
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Int"
     }
   },
   "2660": {
@@ -550,12 +532,6 @@
   "2667": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         0
@@ -569,12 +545,6 @@
   "2668": {
     "inputs": {
       "expression": "2*b",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "b": [
         "2660",
         1
@@ -619,6 +589,36 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "Preview Image"
+    }
+  },
+  "2700": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_lvgjh_00003_.png&type=temp&subfolder=&rand=0.9242200195439397"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_lvgjh_00004_.png&type=temp&subfolder=&rand=0.33625123884599906"
+          }
+        ]
+      },
+      "image_a": [
+        "2583",
+        0
+      ],
+      "image_b": [
+        "2820",
+        1
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
     }
   },
   "2703": {
@@ -688,12 +688,6 @@
         0
       ],
       "guidance": 3.5,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -707,12 +701,6 @@
   "2712": {
     "inputs": {
       "text": "blurry, dust, scratched",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "2603",
         1
@@ -758,7 +746,7 @@
         "1827",
         0
       ],
-      "seed": 1099182055793469,
+      "seed": 379964412577990,
       "steps": 5,
       "cfg": 2,
       "sampler_name": "euler",
@@ -884,6 +872,36 @@
       "title": "Stable Contusion рџ’‹ Batch Collapser"
     }
   },
+  "2741": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_oxfdo_00003_.png&type=temp&subfolder=&rand=0.029575197548648124"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_oxfdo_00004_.png&type=temp&subfolder=&rand=0.8450389550178201"
+          }
+        ]
+      },
+      "image_a": [
+        "2583",
+        0
+      ],
+      "image_b": [
+        "2822",
+        1
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
   "2745": {
     "inputs": {
       "unet_name": "flux1-dev-F16.gguf"
@@ -934,6 +952,7 @@
   },
   "2760": {
     "inputs": {
+      "text": "608",
       "anything": [
         "2758",
         0
@@ -950,7 +969,7 @@
       "start_percent": 0,
       "end_percent": 0.7000000000000002,
       "positive": [
-        "2824",
+        "2631",
         0
       ],
       "negative": [
@@ -1012,17 +1031,6 @@
       "title": "Clean VRAM Used"
     }
   },
-  "2804": {
-    "inputs": {
-      "tile_width": 2048,
-      "tile_height": 2048,
-      "overlap_pixels": 8
-    },
-    "class_type": "StableContusionTileCalculator",
-    "_meta": {
-      "title": "Stable Contusion рџ’‹ Tile Calculator"
-    }
-  },
   "2806": {
     "inputs": {
       "anything": [
@@ -1037,6 +1045,7 @@
   },
   "2807": {
     "inputs": {
+      "text": "824",
       "anything": [
         "2758",
         1
@@ -1055,7 +1064,7 @@
       ],
       "folder_structure": [
         "2583",
-        3
+        2
       ],
       "apply_mask1_to_layer": 1,
       "apply_mask2_to_layer": 2,
@@ -1079,6 +1088,10 @@
       "layer2_image": [
         "2822",
         1
+      ],
+      "mask1": [
+        "2583",
+        1
       ]
     },
     "class_type": "StableContusionPsdBatchSaver",
@@ -1088,6 +1101,10 @@
   },
   "2812": {
     "inputs": {
+      "text_0": "A close-up of a gold hair comb with a stylized design on a white background. the comb is made of metal and has a shiny, metallic finish, giving it a luxurious and elegant look. It is positioned in the center of the image, with the white background providing a stark contrast to the golden color of the comb, making it stand out even more. The comb has a curved shape with a pointed tip and a loop at the top, creating a unique and intricate design. The texture of the metal is smooth and polished, reflecting the light and creating a shimmering effect on the comb's surface.",
+      "text_1": "A close-up of a gold charm with a detailed, glittery texture. The charm is in the shape of a person's profile, with their head facing towards the right side of the image. The person appears to be a woman with curly hair, wearing a flowing dress, and has a serene expression. the charm is attached to a clear plastic loop, which allows it to be easily attached to clothing or accessories. the background is a plain white surface, which provides a stark contrast to the golden color of the charm, making it stand out even more. the overall effect is one of elegance and sophistication, making the charm a perfect accessory for any outfit.",
+      "text_2": "A close-up of a shiny, metallic gold unicorn ornament on a plain white background. the unicorn is positioned in the center of the image, with its full body facing towards the right side of the frame. its mane and tail are flowing in the wind, and its hooves are firmly planted on the ground, giving it a regal and majestic appearance. its shiny texture reflects the light, making it stand out against the plain white surface, creating a striking contrast between the golden color of the unicorn and its surroundings. the ornament appears to be made of metal, with a shiny finish that reflects light and creates a shimmering effect on the surface. the background is simple and uncluttered, allowing the unicorn to stand out prominently in the image. the overall effect is one of elegance and sophistication, perfect for adding a touch of whimsy to any room.",
+      "text_3": "A close-up of a gold-plated brass pendant in the shape of a mythical creature, resembling a dog, on a white background. the pendant is in the center of the image and appears to be made of shiny, metallic gold material, giving it a shiny appearance. the creature is depicted in a standing position, with its legs stretched out and its head turned to the side, giving a sense of movement and energy. its body is elongated and muscular, with a smooth texture that reflects the light, making it stand out against the plain white surface. the image is taken from a slightly elevated angle, focusing on the intricate details of the creature's body, such as its legs, hooves, and tail, which add to its realistic appearance.",
       "text": [
         "1779",
         2
@@ -1096,19 +1113,6 @@
     "class_type": "ShowText|pysssss",
     "_meta": {
       "title": "Show Text рџђЌ"
-    }
-  },
-  "2813": {
-    "inputs": {
-      "channel": "red",
-      "image": [
-        "2583",
-        0
-      ]
-    },
-    "class_type": "ImageToMask",
-    "_meta": {
-      "title": "Convert Image to Mask"
     }
   },
   "2820": {
@@ -1150,13 +1154,7 @@
       "use_image_for_padding": true,
       "exclude_objects": "",
       "include_only": "",
-      "combine_objects": "false",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "combine_objects": false,
       "image": [
         "2583",
         0
@@ -1205,36 +1203,39 @@
       "text": [
         "1779",
         2
-      ],
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      }
+      ]
     },
     "class_type": "HappyinWordReplacer",
     "_meta": {
       "title": "Happyin Word Replacer (Jewelry)"
     }
   },
-  "2824": {
+  "2826": {
     "inputs": {
-      "text": "",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "clip": [
-        "1811",
-        0
+      "filenames": [
+        "2583",
+        2
+      ],
+      "folder_structure": [
+        "2583",
+        2
+      ],
+      "extension": "png",
+      "output_directory": "batch_output",
+      "quality": 100,
+      "metadata": "",
+      "images": [
+        "2820",
+        1
+      ],
+      "alpha_masks": [
+        "2583",
+        1
       ]
     },
-    "class_type": "CLIPTextEncode",
+    "class_type": "StableContusionBatchSaver",
     "_meta": {
-      "title": "CLIP Text Encode (Prompt)"
+      "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   },
   "2827": {
@@ -1245,7 +1246,7 @@
       ],
       "folder_structure": [
         "2583",
-        3
+        2
       ],
       "extension": "png",
       "output_directory": "batch_output",
@@ -1265,32 +1266,25 @@
       "title": "Stable Contusion рџ’‹ Batch Saver"
     }
   },
-  "2828": {
+  "2830": {
     "inputs": {
-      "filenames": [
-        "2583",
-        2
-      ],
-      "folder_structure": [
-        "2583",
-        3
-      ],
-      "extension": "png",
-      "output_directory": "batch_output",
-      "quality": 100,
-      "metadata": "",
-      "images": [
-        "2820",
-        1
-      ],
-      "alpha_masks": [
-        "2583",
-        1
-      ]
+      "text": " "
     },
-    "class_type": "StableContusionBatchSaver",
+    "class_type": "ttN text",
     "_meta": {
-      "title": "Stable Contusion рџ’‹ Batch Saver"
+      "title": "text"
+    }
+  },
+  "2831": {
+    "inputs": {
+      "side_length": 896,
+      "side": "Longest",
+      "upscale_method": "lanczos",
+      "crop": "disabled"
+    },
+    "class_type": "DF_Image_scale_to_side",
+    "_meta": {
+      "title": "Image scale to side"
     }
   }
 }
