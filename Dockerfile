@@ -83,8 +83,8 @@ RUN mkdir -p /workflows
 COPY workflows/ /workflows/
 
 # Add scripts
-COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py src/install_custom_nodes.sh src/custom_nodes.txt.template test_input.json /
-RUN chmod +x /start.sh /restore_snapshot.sh /install_custom_nodes.sh
+COPY src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json /
+RUN chmod +x /start.sh /restore_snapshot.sh
 
 # Test validation command - will fail if any of the expected files/directories don't exist
 RUN echo "Running file structure validation tests..." && \
@@ -102,7 +102,6 @@ RUN echo "Running file structure validation tests..." && \
     test -f /restore_snapshot.sh && test -x /restore_snapshot.sh && \
     test -f /rp_handler.py && \
     test -f /test_input.json && \
-    test -f /custom_nodes.txt.template && \
     echo "All file structure tests passed!"
 
 # Stage 4: Production build with dependencies
@@ -134,8 +133,7 @@ RUN pip3 install jupyterlab
 # Copy file structure from test stage
 COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
-COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /rp_handler.py /test_input.json /
-COPY --from=file-operations-test /custom_nodes.txt.template /custom_nodes.txt.template
+COPY --from=file-operations-test /start.sh /restore_snapshot.sh /rp_handler.py /test_input.json /
 
 # Copy and extract custom_nodes.tar.gz
 COPY happyin/custom_nodes.tar.gz /tmp/custom_nodes.tar.gz
@@ -143,12 +141,6 @@ RUN cd /tmp && \
     tar -xzf custom_nodes.tar.gz && \
     cp -r ComfyUI/custom_nodes/* /comfyui/custom_nodes/ && \
     rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI
-
-# Generate custom_nodes.txt with envsubst
-# RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
-
-# ARG GH_ACCESS_TOKEN
-# RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
 # FROM production as downloader
