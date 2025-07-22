@@ -47,6 +47,7 @@ RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
 RUN apt-get update && apt-get install -y \
     python3.10 \
     python3-pip \
+    python3.10-venv \
     git \
     wget \
     gettext \
@@ -115,9 +116,11 @@ RUN pip3 install torch torchvision torchaudio xformers --index-url https://downl
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-# Copy happyin requirements and install them
+# Copy happyin requirements and install them in a virtual environment
 COPY happyin/requirements.txt requirements-happyin.txt
-RUN pip3 install -r requirements-happyin.txt
+RUN python3 -m venv /comfyui/venv && \
+    /comfyui/venv/bin/pip install --upgrade pip && \
+    /comfyui/venv/bin/pip install -r requirements-happyin.txt
 
 # required for ComfyUI-Apt_Preset
 RUN pip3 install --upgrade pip setuptools wheel watchdog

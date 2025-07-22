@@ -6,8 +6,8 @@ export LD_PRELOAD="${TCMALLOC}"
 
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
-    echo "runpod-worker-comfy: Starting ComfyUI"
-    python3 /comfyui/main.py --disable-auto-launch --disable-metadata --listen &
+    echo "runpod-worker-comfy: Starting ComfyUI with virtual environment"
+    /comfyui/venv/bin/python /comfyui/main.py --disable-auto-launch --disable-metadata --listen &
 
     # Create a symlink to the workspace directory because `runpod-volume` is only mounted in serverless container
     ln -s /workspace /runpod-volume
@@ -21,12 +21,12 @@ if [ "$SERVE_API_LOCALLY" == "true" ]; then
         echo "runpod-worker-comfy: Jupyter Lab not started (JUPYTER_TOKEN not provided)"
     fi
 
-    echo "runpod-worker-comfy: Starting RunPod Handler"
+    echo "runpod-worker-comfy: Starting RunPod Handler with system Python"
     python3 -u /rp_handler.py --rp_serve_api --rp_api_host=0.0.0.0
 else
-    echo "runpod-worker-comfy: Starting ComfyUI"
-    python3 /comfyui/main.py --disable-auto-launch --disable-metadata &
+    echo "runpod-worker-comfy: Starting ComfyUI with virtual environment"
+    /comfyui/venv/bin/python /comfyui/main.py --disable-auto-launch --disable-metadata &
 
-    echo "runpod-worker-comfy: Starting RunPod Handler"
+    echo "runpod-worker-comfy: Starting RunPod Handler with system Python"
     python3 -u /rp_handler.py
 fi
