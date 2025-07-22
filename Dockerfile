@@ -149,10 +149,10 @@ RUN cd /tmp && \
     rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI /tmp/custom_nodes.md5.txt
 
 # Generate custom_nodes.txt with envsubst
-RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
+# RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
 
-ARG GH_ACCESS_TOKEN
-RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
+# ARG GH_ACCESS_TOKEN
+# RUN /install_custom_nodes.sh && rm -f /custom_nodes.txt
 
 # Stage 5: Download models (optional)
 # FROM production as downloader
