@@ -45,7 +45,7 @@ RUN if [ -z "$GH_ACCESS_TOKEN" ]; then \
 
 # Install Python, git and other necessary tools including aria2 for fast downloads
 RUN apt-get update && apt-get install -y \
-    python3.11 \
+    python3.10 \
     python3-pip \
     git \
     wget \
@@ -53,8 +53,8 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libgl1-mesa-glx libglib2.0-0 -y \
     && rm -rf /var/lib/apt/lists/* \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python \
-    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python \
+    && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Clean up to reduce image size
@@ -115,6 +115,10 @@ RUN pip3 install torch torchvision torchaudio xformers --index-url https://downl
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+# Copy happyin requirements and install them
+COPY happyin/requirements.txt requirements-happyin.txt
+RUN pip3 install -r requirements-happyin.txt
+
 # required for ComfyUI-Apt_Preset
 RUN pip3 install --upgrade pip setuptools wheel watchdog
 
@@ -129,6 +133,17 @@ COPY --from=file-operations-test /comfyui/ /comfyui/
 COPY --from=file-operations-test /workflows/ /workflows/
 COPY --from=file-operations-test /start.sh /restore_snapshot.sh /install_custom_nodes.sh /rp_handler.py /test_input.json /
 COPY --from=file-operations-test /custom_nodes.txt.template /custom_nodes.txt.template
+
+# Copy and extract custom_nodes.tar.gz
+COPY happyin/custom_nodes.tar.gz /tmp/custom_nodes.tar.gz
+COPY happyin/custom_nodes.md5.txt /tmp/custom_nodes.md5.txt
+RUN cd /tmp && \
+    echo "Verifying custom_nodes.tar.gz integrity..." && \
+    echo "$(cat custom_nodes.md5.txt)  custom_nodes.tar.gz" | md5sum -c - && \
+    echo "MD5 verification passed!" && \
+    tar -xzf custom_nodes.tar.gz && \
+    cp -r ComfyUI/custom_nodes/* /comfyui/custom_nodes/ && \
+    rm -rf /tmp/custom_nodes.tar.gz /tmp/ComfyUI /tmp/custom_nodes.md5.txt
 
 # Generate custom_nodes.txt with envsubst
 RUN envsubst < /custom_nodes.txt.template > /custom_nodes.txt
